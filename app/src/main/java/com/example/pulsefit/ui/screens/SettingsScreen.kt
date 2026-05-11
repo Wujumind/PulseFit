@@ -7,6 +7,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Straighten
@@ -28,6 +30,7 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     onIntegrateHealthClick: () -> Unit,
 ) {
+    var isHealthExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -92,40 +95,60 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    val trackers = listOf(
-                        "Google Fit" to "Sync steps, heart rate, and more",
-                        "Samsung Health" to "Connect your Galaxy Watch data",
-                        "Garmin Connect" to "Import your Garmin activities",
-                        "Fitbit" to "Sync your Fitbit tracker data",
-                        "Zepp (Amazfit)" to "Connect your Zepp app data"
+                    ListItem(
+                        headlineContent = { Text("Connect Health Platform") },
+                        supportingContent = { Text("Google, Samsung, Garmin, Fitbit, Zepp") },
+                        leadingContent = { Icon(Icons.Default.HealthAndSafety, contentDescription = null) },
+                        trailingContent = {
+                            IconButton(onClick = { isHealthExpanded = !isHealthExpanded }) {
+                                Icon(
+                                    if (isHealthExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = if (isHealthExpanded) "Collapse" else "Expand"
+                                )
+                            }
+                        },
+                        modifier = Modifier.clickable { isHealthExpanded = !isHealthExpanded },
+                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
                     )
 
-                    trackers.forEachIndexed { index, (name, desc) ->
-                        ListItem(
-                            headlineContent = { Text(name) },
-                            supportingContent = { Text(desc) },
-                            leadingContent = { 
-                                Icon(
-                                    when(name) {
-                                        "Google Fit" -> Icons.Default.HealthAndSafety
-                                        "Samsung Health" -> Icons.Default.Watch
-                                        "Garmin Connect" -> Icons.Default.Navigation
-                                        "Fitbit" -> Icons.Default.Watch
-                                        "Zepp (Amazfit)" -> Icons.Default.Bluetooth
-                                        else -> Icons.Default.Straighten
-                                    }, 
-                                    contentDescription = null 
-                                ) 
-                            },
-                            trailingContent = {
-                                TextButton(onClick = onIntegrateHealthClick) {
-                                    Text("Connect")
-                                }
-                            },
-                            colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+                    if (isHealthExpanded) {
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        
+                        val trackers = listOf(
+                            "Google Fit" to "Sync steps, heart rate, and more",
+                            "Samsung Health" to "Connect your Galaxy Watch data",
+                            "Garmin Connect" to "Import your Garmin activities",
+                            "Fitbit" to "Sync your Fitbit tracker data",
+                            "Zepp (Amazfit)" to "Connect your Zepp app data"
                         )
-                        if (index < trackers.size - 1) {
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                        trackers.forEachIndexed { index, (name, desc) ->
+                            ListItem(
+                                headlineContent = { Text(name) },
+                                supportingContent = { Text(desc) },
+                                leadingContent = { 
+                                    Icon(
+                                        when(name) {
+                                            "Google Fit" -> Icons.Default.HealthAndSafety
+                                            "Samsung Health" -> Icons.Default.Watch
+                                            "Garmin Connect" -> Icons.Default.Navigation
+                                            "Fitbit" -> Icons.Default.Watch
+                                            "Zepp (Amazfit)" -> Icons.Default.Bluetooth
+                                            else -> Icons.Default.Straighten
+                                        }, 
+                                        contentDescription = null 
+                                    ) 
+                                },
+                                trailingContent = {
+                                    TextButton(onClick = onIntegrateHealthClick) {
+                                        Text("Connect")
+                                    }
+                                },
+                                colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+                            )
+                            if (index < trackers.size - 1) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
                         }
                     }
                 }
