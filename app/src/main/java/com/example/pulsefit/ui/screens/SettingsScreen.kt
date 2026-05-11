@@ -17,7 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+
+import com.example.pulsefit.HealthConnectManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +32,14 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogout: () -> Unit,
     onIntegrateHealthClick: () -> Unit,
+    healthConnectManager: HealthConnectManager
 ) {
     var isHealthExpanded by remember { mutableStateOf(false) }
+    var isConnected by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isConnected = healthConnectManager.hasAllPermissions()
+    }
 
     Scaffold(
         topBar = {
@@ -97,8 +106,14 @@ fun SettingsScreen(
                 Column {
                     ListItem(
                         headlineContent = { Text("Connect Health Platform") },
-                        supportingContent = { Text("Google, Samsung, Garmin, Fitbit, Zepp") },
-                        leadingContent = { Icon(Icons.Default.HealthAndSafety, contentDescription = null) },
+                        supportingContent = { Text(if (isConnected) "Already synced with Health Connect" else "Google, Samsung, Garmin, Fitbit, Zepp") },
+                        leadingContent = { 
+                            Icon(
+                                Icons.Default.HealthAndSafety, 
+                                contentDescription = null,
+                                tint = if (isConnected) Color(0xFF4CAF50) else LocalContentColor.current
+                            ) 
+                        },
                         trailingContent = {
                             IconButton(onClick = { isHealthExpanded = !isHealthExpanded }) {
                                 Icon(

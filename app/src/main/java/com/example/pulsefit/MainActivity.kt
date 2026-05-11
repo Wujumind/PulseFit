@@ -174,7 +174,8 @@ fun PulseFitApp(
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onIntegrateHealthClick = onRequestHealthPermissions
+                onIntegrateHealthClick = onRequestHealthPermissions,
+                healthConnectManager = healthConnectManager
             )
         }
         composable("profile") {
