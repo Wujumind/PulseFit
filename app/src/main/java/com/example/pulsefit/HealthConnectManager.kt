@@ -48,7 +48,6 @@ class HealthConnectManager(private val context: Context) {
         val client = healthConnectClient ?: return null
         if (!hasAllPermissions()) return null
         
-        // Look back 7 days to get the most recent data
         val startTime = Instant.now().minus(java.time.Duration.ofDays(7))
         val endTime = Instant.now()
 
@@ -59,8 +58,29 @@ class HealthConnectManager(private val context: Context) {
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
                 )
             )
-            // Return the most recent record
             return response.records.maxByOrNull { it.time }?.beatsPerMinute
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    suspend fun readCurrentHeartRate(): Long? {
+        val client = healthConnectClient ?: return null
+        if (!hasAllPermissions()) return null
+
+        // Look back 1 hour for the most recent heart rate sample
+        val startTime = Instant.now().minus(java.time.Duration.ofHours(1))
+        val endTime = Instant.now()
+
+        try {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = HeartRateRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+            // HeartRateRecord contains a list of samples
+            return response.records.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute
         } catch (e: Exception) {
             return null
         }

@@ -106,6 +106,7 @@ fun HomeScreen(
 fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManager: HealthConnectManager) {
     val scrollState = rememberScrollState()
     
+    var currentHeartRate by remember { mutableStateOf("--") }
     var restingHeartRate by remember { mutableStateOf("--") }
     var hrv by remember { mutableStateOf("--") }
 
@@ -113,6 +114,7 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManage
     LaunchedEffect(Unit) {
         while(true) {
             if (healthConnectManager.hasAllPermissions()) {
+                currentHeartRate = healthConnectManager.readCurrentHeartRate()?.toString() ?: "--"
                 restingHeartRate = healthConnectManager.readRestingHeartRate()?.toString() ?: "--"
                 hrv = healthConnectManager.readHRV()?.let { "%.1f".format(it) } ?: "--"
             }
@@ -131,10 +133,19 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManage
         Spacer(modifier = Modifier.height(24.dp))
 
         MetricCard(
+            title = "Current Heart Rate",
+            value = currentHeartRate,
+            unit = "BPM",
+            color = Color.Red
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MetricCard(
             title = "Resting Heart Rate",
             value = restingHeartRate,
             unit = "BPM",
-            color = Color.Red
+            color = Color(0xFFFF5722) // Orange-Red
         )
 
         Spacer(modifier = Modifier.height(16.dp))
