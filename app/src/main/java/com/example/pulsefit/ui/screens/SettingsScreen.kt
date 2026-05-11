@@ -1,8 +1,10 @@
 package com.example.pulsefit.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Straighten
@@ -15,11 +17,14 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    isMetric: Boolean,
+    onMetricChange: (Boolean) -> Unit,
+    isDarkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit,
     onBackClick: () -> Unit,
+    onLogout: () -> Unit,
     onIntegrateHealthClick: () -> Unit,
 ) {
-    var isMetric by remember { mutableStateOf(true) }
-    var isDarkMode by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -54,7 +59,7 @@ fun SettingsScreen(
                 trailingContent = {
                     Switch(
                         checked = !isMetric,
-                        onCheckedChange = { isMetric = !it }
+                        onCheckedChange = { onMetricChange(!it) }
                     )
                 }
             )
@@ -66,7 +71,7 @@ fun SettingsScreen(
                 trailingContent = {
                     Switch(
                         checked = isDarkMode,
-                        onCheckedChange = { isDarkMode = it }
+                        onCheckedChange = { onDarkModeChange(it) }
                     )
                 }
             )
@@ -94,6 +99,20 @@ fun SettingsScreen(
                     colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
                 )
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            ListItem(
+                headlineContent = { Text("Logout", color = MaterialTheme.colorScheme.error) },
+                leadingContent = { 
+                    Icon(
+                        Icons.AutoMirrored.Filled.Logout, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.error
+                    ) 
+                },
+                modifier = Modifier.clickable { onLogout() }
+            )
         }
     }
 }

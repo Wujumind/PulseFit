@@ -13,17 +13,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.pulsefit.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    userViewModel: UserViewModel,
+    isMetric: Boolean,
     onBackClick: () -> Unit,
 ) {
-    var username by remember { mutableStateOf("User123") }
-    var height by remember { mutableStateOf("175") }
-    var weight by remember { mutableStateOf("70") }
+    var height by remember { mutableStateOf(if (isMetric) "175" else "69") }
+    var weight by remember { mutableStateOf(if (isMetric) "70" else "154") }
 
     Scaffold(
         topBar = {
@@ -53,12 +57,21 @@ fun ProfileScreen(
                     .clickable { /* Handle photo change */ },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                if (userViewModel.profilePictureUrl != null) {
+                    AsyncImage(
+                        model = userViewModel.profilePictureUrl,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             TextButton(onClick = { /* Handle photo change */ }) {
                 Text("Change Photo")
@@ -67,8 +80,8 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = userViewModel.username,
+                onValueChange = { userViewModel.username = it },
                 label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -79,7 +92,7 @@ fun ProfileScreen(
                 OutlinedTextField(
                     value = height,
                     onValueChange = { height = it },
-                    label = { Text("Height (cm)") },
+                    label = { Text(if (isMetric) "Height (cm)" else "Height (in)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
@@ -87,7 +100,7 @@ fun ProfileScreen(
                 OutlinedTextField(
                     value = weight,
                     onValueChange = { weight = it },
-                    label = { Text("Weight (kg)") },
+                    label = { Text(if (isMetric) "Weight (kg)" else "Weight (lb)") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )

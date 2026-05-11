@@ -18,4 +18,8 @@ A modern fitness tracking application built with Jetpack Compose.
 ## Getting Started
 1. Clone the repository.
 2. Open in Android Studio.
-3. Build and Run on an emulator or physical device.
+3. **Authentication Setup (Mandatory for Social Login)**:
+    - **Google**: Create a project in Google Cloud Console, get an OAuth Web Client ID, and update `MainActivity.kt`.
+    - **Facebook**: Create an app in Meta for Developers, get the App ID and Client Token, and update `strings.xml`.
+    - **SHA-1**: Add your local SHA-1 fingerprint to both developer consoles.
+4. Build and Run on an emulator or physical device.

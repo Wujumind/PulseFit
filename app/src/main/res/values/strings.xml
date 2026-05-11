@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">PulseFit</string>
+
+    <!-- TODO: Setup Facebook Login
+         1. Create an app at https://developers.facebook.com/
+         2. Replace "YOUR_FACEBOOK_APP_ID" with your App ID
+         3. Replace "YOUR_FACEBOOK_CLIENT_TOKEN" with your Client Token (Settings > Advanced)
+         4. Add your Key Hash to the Facebook App settings
+    -->
+    <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
+    <string name="facebook_client_token">YOUR_FACEBOOK_CLIENT_TOKEN</string>
 </resources>

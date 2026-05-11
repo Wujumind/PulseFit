@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,13 +25,13 @@ import com.example.pulsefit.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onLogout: () -> Unit,
+    username: String,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Metrics", "Workouts")
-    val icons = listOf(Icons.Default.MonitorHeart, Icons.Default.FitnessCenter)
+    val tabs = listOf("Metrics", "Workouts", "Social")
+    val icons = listOf(Icons.Default.MonitorHeart, Icons.Default.FitnessCenter, Icons.Default.People)
 
     Scaffold(
         topBar = {
@@ -48,13 +49,18 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    Text(
+                        text = "Hi, $username",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                     IconButton(onClick = onProfileClick) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -83,12 +89,7 @@ fun HomeScreen(
             when (selectedTab) {
                 0 -> HealthMetricsContent()
                 1 -> WorkoutsContent()
-            }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            TextButton(onClick = onLogout) {
-                Text("Logout", color = MaterialTheme.colorScheme.error)
+                2 -> SocialContent()
             }
         }
     }
@@ -186,10 +187,25 @@ fun WorkoutsContent() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
+            text = "Weekly Schedule",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .align(Alignment.Start)
+        )
+
+        WeeklyScheduler()
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
             text = "Your Workouts",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .align(Alignment.Start)
         )
 
         WorkoutOptionCard(
@@ -205,6 +221,144 @@ fun WorkoutsContent() {
             description = "Build a custom routine that fits your needs",
             icon = Icons.Default.Add,
         ) { /* Handle Create Custom */ }
+    }
+}
+
+@Composable
+fun WeeklyScheduler() {
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    var schedule by remember {
+        mutableStateOf(
+            mapOf(
+                "Mon" to "Chest & Triceps",
+                "Tue" to "Back & Biceps",
+                "Wed" to "Rest Day",
+                "Thu" to "Legs",
+                "Fri" to "Shoulders",
+                "Sat" to "Full Body / Cardio",
+                "Sun" to "Rest Day"
+            )
+        )
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        days.forEach { day ->
+            var isEditing by remember { mutableStateOf(value = false) }
+            var textValue by remember { mutableStateOf(schedule[day] ?: "") }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (textValue.contains("Rest", ignoreCase = true))
+                        MaterialTheme.colorScheme.surfaceVariant
+                    else
+                        MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = day,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (isEditing) {
+                            OutlinedTextField(
+                                value = textValue,
+                                onValueChange = { textValue = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            schedule += (day to textValue)
+                                            isEditing = false
+                                        }
+                                    ) {
+                                        Text("Save", color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = textValue,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                    if (!isEditing) {
+                        IconButton(onClick = { isEditing = true }) {
+                            Text("Edit", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SocialContent() {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Fitness Community",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 16.dp)
+        )
+
+        // Placeholder for social feed
+        repeat(5) { index ->
+            SocialPostCard(
+                username = "Athlete ${index + 1}",
+                activity = "Completed a 5km Run",
+                time = "${index + 1}h ago"
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+fun SocialPostCard(username: String, activity: String, time: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(text = username, style = MaterialTheme.typography.titleMedium)
+                Text(text = activity, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = time,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+        }
     }
 }
 
