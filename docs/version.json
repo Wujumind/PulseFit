@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0",
+  "versionCode": 4,
+  "versionName": "1.4",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/app-debug.apk",
-  "releaseNotes": "Initial PulseFit Release!"
+  "releaseNotes": "Expanded health tracker support! Connect Google Fit, Samsung Health, Garmin, Fitbit, and Zepp via Health Connect."
 }

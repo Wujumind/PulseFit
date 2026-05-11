@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pulsefit.R
 import com.example.pulsefit.WorkoutViewModel
+import com.example.pulsefit.HealthConnectManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     username: String,
     workoutViewModel: WorkoutViewModel,
+    healthConnectManager: HealthConnectManager,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
 ) {
@@ -56,7 +58,7 @@ fun HomeScreen(
                     Text(
                         text = "Hi, $username",
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 8.dp),
                     )
                     IconButton(onClick = onProfileClick) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Profile")
@@ -91,7 +93,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (selectedTab) {
-                0 -> HealthMetricsContent(workoutViewModel)
+                0 -> HealthMetricsContent(workoutViewModel, healthConnectManager)
                 1 -> WorkoutsContent(workoutViewModel)
                 2 -> SocialContent()
             }
@@ -99,9 +101,25 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HealthMetricsContent(workoutViewModel: WorkoutViewModel) {
+fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManager: HealthConnectManager) {
     val scrollState = rememberScrollState()
+    
+    var restingHeartRate by remember { mutableStateOf("--") }
+    var hrv by remember { mutableStateOf("--") }
+
+    // Re-fetch data whenever the screen is visible
+    LaunchedEffect(Unit) {
+        while(true) {
+            if (healthConnectManager.hasAllPermissions()) {
+                restingHeartRate = healthConnectManager.readRestingHeartRate()?.toString() ?: "--"
+                hrv = healthConnectManager.readHRV()?.let { "%.1f".format(it) } ?: "--"
+            }
+            kotlinx.coroutines.delay(15000) // Refresh every 15 seconds
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,7 +132,7 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel) {
 
         MetricCard(
             title = "Resting Heart Rate",
-            value = "72",
+            value = restingHeartRate,
             unit = "BPM",
             color = Color.Red
         )
@@ -123,10 +141,10 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel) {
 
         MetricCard(
             title = "Heart Rate Variability",
-            value = "45",
+            value = hrv,
             unit = "ms",
             color = MaterialTheme.colorScheme.primary,
-            statusMessage = "Your HRV is within the healthy range."
+            statusMessage = if (hrv != "--") "Your HRV is within the healthy range." else "Connect health app to see data."
         )
         
         // Add more spacers at the bottom for better scroll feel

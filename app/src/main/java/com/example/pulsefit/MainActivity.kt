@@ -1,49 +1,45 @@
 package com.example.pulsefit
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.pulsefit.ui.screens.HomeScreen
-import com.example.pulsefit.ui.screens.LoginScreen
-import com.example.pulsefit.ui.screens.ProfileScreen
-import com.example.pulsefit.ui.screens.SettingsScreen
-import com.example.pulsefit.ui.screens.SignUpScreen
+import com.example.pulsefit.ui.screens.*
 import com.example.pulsefit.ui.theme.PulseFitTheme
-import androidx.compose.ui.platform.LocalContext
-
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.lifecycleScope
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
+import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.facebook.GraphRequest
-import android.content.Intent
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var callbackManager: CallbackManager
+    private lateinit var healthConnectManager: HealthConnectManager
+    
+    private val requestPermissions = registerForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        // Permissions granted
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         callbackManager = CallbackManager.Factory.create()
+        healthConnectManager = HealthConnectManager(this)
         enableEdgeToEdge()
         setContent {
             val userViewModel: UserViewModel = viewModel()
@@ -61,8 +57,12 @@ class MainActivity : ComponentActivity() {
                     onMetricChange = { isMetric = it },
                     userViewModel = userViewModel,
                     workoutViewModel = workoutViewModel,
+                    healthConnectManager = healthConnectManager,
                     onGoogleSignIn = { signInWithGoogle(userViewModel) },
-                    onFacebookSignIn = { signInWithFacebook(userViewModel) }
+                    onFacebookSignIn = { signInWithFacebook(userViewModel) },
+                    onRequestHealthPermissions = { 
+                        requestPermissions.launch(healthConnectManager.permissions)
+                    }
                 )
             }
         }
@@ -71,10 +71,7 @@ class MainActivity : ComponentActivity() {
     private fun signInWithGoogle(userViewModel: UserViewModel) {
         val credentialManager = CredentialManager.create(this)
         
-        // TODO: REPLACE "YOUR_GOOGLE_WEB_CLIENT_ID" with your actual Web Client ID from Google Cloud Console
-        // 1. Go to https://console.cloud.google.com/
-        // 2. Create an OAuth 2.0 Client ID for "Web application"
-        // 3. Add your debug SHA-1 fingerprint to the Android Client ID
+        // TODO: REPLACE "YOUR_GOOGLE_WEB_CLIENT_ID" with your actual Web Client ID
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId("YOUR_GOOGLE_WEB_CLIENT_ID")
@@ -95,9 +92,7 @@ class MainActivity : ComponentActivity() {
                         userEmail = credential.id
                     )
                 }
-            } catch (e: Exception) {
-                // Handle error
-            }
+            } catch (_: Exception) {}
         }
     }
 
@@ -122,7 +117,9 @@ class MainActivity : ComponentActivity() {
         LoginManager.getInstance().logInWithReadPermissions(this, listOf("email", "public_profile"))
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         callbackManager.onActivityResult(requestCode, resultCode, data)
     }
@@ -136,8 +133,10 @@ fun PulseFitApp(
     onMetricChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
     workoutViewModel: WorkoutViewModel,
+    healthConnectManager: HealthConnectManager,
     onGoogleSignIn: () -> Unit,
-    onFacebookSignIn: () -> Unit
+    onFacebookSignIn: () -> Unit,
+    onRequestHealthPermissions: () -> Unit
 ) {
     val navController = rememberNavController()
 
@@ -159,6 +158,7 @@ fun PulseFitApp(
             HomeScreen(
                 username = userViewModel.username,
                 workoutViewModel = workoutViewModel,
+                healthConnectManager = healthConnectManager,
                 onSettingsClick = { navController.navigate("settings") },
             ) { navController.navigate("profile") }
         }
@@ -173,8 +173,9 @@ fun PulseFitApp(
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
-                }
-            ) { /* Handle Health Integration */ }
+                },
+                onIntegrateHealthClick = onRequestHealthPermissions
+            )
         }
         composable("profile") {
             ProfileScreen(
