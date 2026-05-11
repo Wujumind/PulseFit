@@ -38,6 +38,29 @@ class HealthConnectManager(private val context: Context) {
         context.startActivity(intent)
     }
 
+    fun openSpecificHealthApp(packageName: String) {
+        val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+        if (intent != null) {
+            context.startActivity(intent)
+        } else {
+            // If app not installed, open Play Store
+            val storeIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("market://details?id=$packageName")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(storeIntent)
+        }
+    }
+
+    fun isAppInstalled(packageName: String): Boolean {
+        return try {
+            context.packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     suspend fun hasAllPermissions(): Boolean {
         val client = healthConnectClient ?: return false
         val granted = client.permissionController.getGrantedPermissions()

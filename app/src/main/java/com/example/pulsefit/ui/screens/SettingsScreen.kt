@@ -36,9 +36,44 @@ fun SettingsScreen(
 ) {
     var isHealthExpanded by remember { mutableStateOf(false) }
     var isConnected by remember { mutableStateOf(false) }
+    var showInstructionsFor by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         isConnected = healthConnectManager.hasAllPermissions()
+    }
+    
+    if (showInstructionsFor != null) {
+        AlertDialog(
+            onDismissRequest = { showInstructionsFor = null },
+            title = { Text("Connect $showInstructionsFor") },
+            text = { 
+                Text("To sync data from $showInstructionsFor, please:\n\n" +
+                    "1. Open the $showInstructionsFor app.\n" +
+                    "2. Go to Settings/Sync.\n" +
+                    "3. Enable 'Sync to Health Connect'.\n\n" +
+                    "PulseFit will then automatically see your data!")
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val packageName = when(showInstructionsFor) {
+                        "Samsung Health" -> "com.sec.android.app.shealth"
+                        "Garmin Connect" -> "com.garmin.android.apps.connectmobile"
+                        "Fitbit" -> "com.fitbit.FitbitMobile"
+                        "Zepp (Amazfit)" -> "com.huami.watch.hmwatch"
+                        else -> "com.google.android.apps.fitness"
+                    }
+                    healthConnectManager.openSpecificHealthApp(packageName)
+                    showInstructionsFor = null
+                }) {
+                    Text("Open App")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInstructionsFor = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -155,8 +190,14 @@ fun SettingsScreen(
                                     ) 
                                 },
                                 trailingContent = {
-                                    TextButton(onClick = onIntegrateHealthClick) {
-                                        Text("Connect")
+                                    TextButton(onClick = {
+                                        if (!isConnected) {
+                                            onIntegrateHealthClick()
+                                        } else {
+                                            showInstructionsFor = name
+                                        }
+                                    }) {
+                                        Text(if (isConnected) "Settings" else "Connect")
                                     }
                                 },
                                 colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
