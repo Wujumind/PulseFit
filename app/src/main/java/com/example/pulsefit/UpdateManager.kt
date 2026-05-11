@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -30,7 +31,9 @@ class UpdateManager(private val context: Context) {
     suspend fun checkForUpdate(): UpdateInfo? {
         return withContext(Dispatchers.IO) {
             try {
-                val request = Request.Builder().url(updateUrl).build()
+                // Add a timestamp to bypass any potential caching
+                val urlWithCacheBuster = "$updateUrl?t=${System.currentTimeMillis()}"
+                val request = Request.Builder().url(urlWithCacheBuster).build()
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@withContext null
                     val body = response.body?.string() ?: return@withContext null
@@ -48,6 +51,8 @@ class UpdateManager(private val context: Context) {
                         @Suppress("DEPRECATION")
                         packageInfo.versionCode
                     }
+                    
+                    // Priority check for faster updates
                     if (info.versionCode > currentVersion) info else null
                 }
             } catch (_: Exception) {
@@ -62,24 +67,26 @@ fun UpdateChecker(context: Context) {
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     val updateManager = remember { UpdateManager(context) }
 
+    // Check for update immediately on launch and every time the app comes to foreground
     LaunchedEffect(Unit) {
         updateInfo = updateManager.checkForUpdate()
     }
 
     updateInfo?.let { info ->
         AlertDialog(
-            onDismissRequest = { updateInfo = null },
+            onDismissRequest = { /* Force update by not allowing dismissal if you want */ },
             title = { Text("Update Available") },
-            text = { Text("A new version (${info.versionName}) is available.\n\n${info.releaseNotes}") },
+            text = { Text("A newer version (${info.versionName}) of PulseFit is available. \n\nWhat's new:\n${info.releaseNotes}") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl))
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         context.startActivity(intent)
-                        updateInfo = null
+                        // Note: Android handles the download and install flow via the browser/system
                     }
                 ) {
-                    Text("Download")
+                    Text("Update Now")
                 }
             },
             dismissButton = {
