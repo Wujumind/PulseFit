@@ -1,5 +1,6 @@
 package com.example.pulsefit.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -21,11 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pulsefit.R
+import com.example.pulsefit.WorkoutViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     username: String,
+    workoutViewModel: WorkoutViewModel,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
 ) {
@@ -87,8 +91,8 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (selectedTab) {
-                0 -> HealthMetricsContent()
-                1 -> WorkoutsContent()
+                0 -> HealthMetricsContent(workoutViewModel)
+                1 -> WorkoutsContent(workoutViewModel)
                 2 -> SocialContent()
             }
         }
@@ -96,7 +100,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HealthMetricsContent() {
+fun HealthMetricsContent(workoutViewModel: WorkoutViewModel) {
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -104,6 +108,10 @@ fun HealthMetricsContent() {
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        WeeklyWorkoutTracker(workoutViewModel)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         MetricCard(
             title = "Resting Heart Rate",
             value = "72",
@@ -178,7 +186,68 @@ fun MetricCard(
 }
 
 @Composable
-fun WorkoutsContent() {
+fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Weekly Workout Progress",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                days.forEach { day ->
+                    val isCompleted = viewModel.completionStatus[day] ?: false
+                    val isRestDay = viewModel.schedule[day]?.contains("Rest", ignoreCase = true) ?: false
+                    
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = day, style = MaterialTheme.typography.labelSmall)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(
+                                    when {
+                                        isCompleted -> Color(0xFF4CAF50) // Green
+                                        isRestDay -> MaterialTheme.colorScheme.surfaceVariant
+                                        else -> Color(0xFFF44336) // Red
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isCompleted) {
+                                Icon(
+                                    imageVector = Icons.Default.Add, // Placeholder for Checkmark
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -195,7 +264,7 @@ fun WorkoutsContent() {
                 .align(Alignment.Start)
         )
 
-        WeeklyScheduler()
+        WeeklyScheduler(workoutViewModel)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -225,26 +294,13 @@ fun WorkoutsContent() {
 }
 
 @Composable
-fun WeeklyScheduler() {
+fun WeeklyScheduler(viewModel: WorkoutViewModel) {
     val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-    var schedule by remember {
-        mutableStateOf(
-            mapOf(
-                "Mon" to "Chest & Triceps",
-                "Tue" to "Back & Biceps",
-                "Wed" to "Rest Day",
-                "Thu" to "Legs",
-                "Fri" to "Shoulders",
-                "Sat" to "Full Body / Cardio",
-                "Sun" to "Rest Day"
-            )
-        )
-    }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         days.forEach { day ->
             var isEditing by remember { mutableStateOf(value = false) }
-            var textValue by remember { mutableStateOf(schedule[day] ?: "") }
+            var textValue by remember { mutableStateOf(viewModel.schedule[day] ?: "") }
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -277,7 +333,7 @@ fun WeeklyScheduler() {
                                 trailingIcon = {
                                     IconButton(
                                         onClick = {
-                                            schedule += (day to textValue)
+                                            viewModel.updateSchedule(day, textValue)
                                             isEditing = false
                                         }
                                     ) {

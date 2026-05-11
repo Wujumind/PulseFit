@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val userViewModel: UserViewModel = viewModel()
+            val workoutViewModel: WorkoutViewModel = viewModel()
             val systemDarkMode = isSystemInDarkTheme()
             var isDarkMode by remember { mutableStateOf(systemDarkMode) }
             var isMetric by remember { mutableStateOf(value = true) }
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
                     isMetric = isMetric,
                     onMetricChange = { isMetric = it },
                     userViewModel = userViewModel,
+                    workoutViewModel = workoutViewModel,
                     onGoogleSignIn = { signInWithGoogle(userViewModel) },
                     onFacebookSignIn = { signInWithFacebook(userViewModel) }
                 )
@@ -133,6 +135,7 @@ fun PulseFitApp(
     isMetric: Boolean,
     onMetricChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
+    workoutViewModel: WorkoutViewModel,
     onGoogleSignIn: () -> Unit,
     onFacebookSignIn: () -> Unit
 ) {
@@ -155,6 +158,7 @@ fun PulseFitApp(
         composable("home") {
             HomeScreen(
                 username = userViewModel.username,
+                workoutViewModel = workoutViewModel,
                 onSettingsClick = { navController.navigate("settings") },
             ) { navController.navigate("profile") }
         }
