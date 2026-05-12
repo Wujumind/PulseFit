@@ -21,12 +21,12 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit,
     onGoogleSignInClick: () -> Unit,
-    onFacebookSignInClick: () -> Unit
+    onFacebookSignInClick: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(value = false) }
     val scrollState = rememberScrollState()
 
     val auth = FirebaseAuth.getInstance()

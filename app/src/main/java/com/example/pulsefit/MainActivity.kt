@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
     
     private val requestPermissions = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
+    ) { _ ->
         // Permissions granted
     }
 

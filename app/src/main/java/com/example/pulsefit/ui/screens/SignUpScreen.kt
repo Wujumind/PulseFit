@@ -17,13 +17,13 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun SignUpScreen(
     onSignUpSuccess: () -> Unit,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(value = false) }
 
     val auth = FirebaseAuth.getInstance()
 
