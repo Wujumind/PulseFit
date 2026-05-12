@@ -242,9 +242,16 @@ fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
                 days.forEach { day ->
                     val isCompleted = viewModel.completionStatus[day] ?: false
                     val isRestDay = viewModel.schedule[day]?.contains("Rest", ignoreCase = true) ?: false
+                    val isPast = viewModel.isPastDay(day)
+                    val isToday = viewModel.isToday(day)
                     
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = day, style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = day, 
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isToday) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         
                         Box(
@@ -253,16 +260,16 @@ fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
                                 .clip(androidx.compose.foundation.shape.CircleShape)
                                 .background(
                                     when {
-                                        isCompleted -> Color(0xFF4CAF50) // Green
-                                        isRestDay -> MaterialTheme.colorScheme.surfaceVariant
-                                        else -> Color(0xFFF44336) // Red
+                                        isCompleted -> Color(0xFF4CAF50) // Green (Completed/Rest)
+                                        isPast && !isRestDay -> Color(0xFFF44336) // Red (Missed Workout)
+                                        else -> MaterialTheme.colorScheme.surfaceVariant // Gray (Future/Pending Today)
                                     }
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             if (isCompleted) {
                                 Icon(
-                                    imageVector = Icons.Default.Add, // Placeholder for Checkmark
+                                    imageVector = Icons.Default.Add, 
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
                                     tint = Color.White
@@ -295,6 +302,18 @@ fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
         )
 
         WeeklyScheduler(workoutViewModel)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { workoutViewModel.startTodayWorkout() },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+        ) {
+            Icon(Icons.Default.FitnessCenter, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Start Today's Workout")
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

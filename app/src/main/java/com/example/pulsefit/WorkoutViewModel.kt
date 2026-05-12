@@ -7,9 +7,13 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+import java.time.LocalDate
+
 class WorkoutViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+
+    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
     var schedule by mutableStateOf(
         mapOf(
@@ -25,7 +29,7 @@ class WorkoutViewModel : ViewModel() {
 
     var completionStatus by mutableStateOf(
         mapOf(
-            "Mon" to true,
+            "Mon" to false,
             "Tue" to false,
             "Wed" to true,
             "Thu" to false,
@@ -34,6 +38,25 @@ class WorkoutViewModel : ViewModel() {
             "Sun" to true
         )
     )
+
+    fun getDayIndex(day: String): Int = days.indexOf(day) + 1
+
+    fun getCurrentDayOfWeek(): Int {
+        return LocalDate.now().dayOfWeek.value // 1 (Mon) to 7 (Sun)
+    }
+
+    fun isToday(day: String): Boolean {
+        return getDayIndex(day) == getCurrentDayOfWeek()
+    }
+
+    fun isPastDay(day: String): Boolean {
+        return getDayIndex(day) < getCurrentDayOfWeek()
+    }
+
+    fun startTodayWorkout() {
+        val currentDayStr = days.getOrNull(getCurrentDayOfWeek() - 1) ?: return
+        toggleCompletion(currentDayStr, completed = true)
+    }
 
     init {
         auth.addAuthStateListener { firebaseAuth ->
@@ -47,9 +70,9 @@ class WorkoutViewModel : ViewModel() {
     }
 
     fun updateSchedule(day: String, workout: String) {
-        schedule = schedule + (day to workout)
+        schedule += (day to workout)
         if (workout.contains("Rest", ignoreCase = true)) {
-            toggleCompletion(day, true)
+            toggleCompletion(day, completed = true)
         }
         saveWorkoutData()
     }

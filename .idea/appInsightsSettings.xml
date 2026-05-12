@@ -10,9 +10,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.pulsefit" />
-                  <option name="mobileSdkAppId" value="1:1234567890:android:3465873465" />
-                  <option name="projectId" value="pulsefit-dummy" />
-                  <option name="projectNumber" value="1234567890" />
+                  <option name="mobileSdkAppId" value="1:904782209269:android:b6e1679c829b85736ee5bc" />
+                  <option name="projectId" value="pulsefit-09fedb00" />
+                  <option name="projectNumber" value="904782209269" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
