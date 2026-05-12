@@ -74,10 +74,17 @@ class MainActivity : ComponentActivity() {
     private fun signInWithGoogle(userViewModel: UserViewModel) {
         val credentialManager = CredentialManager.create(this)
         
-        // TODO: REPLACE "YOUR_GOOGLE_WEB_CLIENT_ID" with your actual Web Client ID
+        // TODO: REPLACE "YOUR_GOOGLE_WEB_CLIENT_ID" with your actual Web Client ID from Google Cloud Console
+        val serverClientId = "YOUR_GOOGLE_WEB_CLIENT_ID"
+        
+        if (serverClientId == "YOUR_GOOGLE_WEB_CLIENT_ID") {
+            android.widget.Toast.makeText(this, "Setup Required: Please set YOUR_GOOGLE_WEB_CLIENT_ID in MainActivity.kt", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
-            .setServerClientId("YOUR_GOOGLE_WEB_CLIENT_ID")
+            .setServerClientId(serverClientId)
             .build()
 
         val request = GetCredentialRequest.Builder()
