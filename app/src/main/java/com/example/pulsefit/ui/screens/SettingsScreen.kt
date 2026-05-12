@@ -235,7 +235,7 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text("Version") },
-                supportingContent = { Text("0.96 (Build 16)") },
+                supportingContent = { Text("1.08 (Build 18)") },
                 leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
                 trailingContent = {
                     TextButton(onClick = onCheckForUpdatesClick) {
@@ -259,7 +259,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Version 0.96 (Build 16)",
+                text = "Version 1.08 (Build 18)",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier

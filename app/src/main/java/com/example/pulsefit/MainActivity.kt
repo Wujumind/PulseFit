@@ -1,6 +1,5 @@
 package com.example.pulsefit
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -99,7 +98,7 @@ class MainActivity : ComponentActivity() {
                             scope.launch {
                                 updateInfo = updateManager.checkForUpdate()
                                 if (updateInfo == null) {
-                                    android.widget.Toast.makeText(context, "App is up to date", android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Currently on the latest version", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -112,14 +111,9 @@ class MainActivity : ComponentActivity() {
     private fun signInWithGoogle(userViewModel: UserViewModel) {
         val credentialManager = CredentialManager.create(this)
         
-        // TODO: REPLACE "YOUR_GOOGLE_WEB_CLIENT_ID" with your actual Web Client ID from Google Cloud Console
+        // Use the Client ID from your Firebase Console
         val serverClientId = "904782209269-n115kq86uceqcfav4ukassnpil9tegaf.apps.googleusercontent.com"
         
-        if (serverClientId == "904782209269-n115kq86uceqcfav4ukassnpil9tegaf.apps.googleusercontent.com") {
-            android.widget.Toast.makeText(this, "Setup Required: Please set YOUR_GOOGLE_WEB_CLIENT_ID in MainActivity.kt", android.widget.Toast.LENGTH_LONG).show()
-            return
-        }
-
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(serverClientId)
@@ -142,10 +136,15 @@ class MainActivity : ComponentActivity() {
                                 photoUrl = credential.profilePictureUri?.toString(),
                                 userEmail = credential.id
                             )
+                        } else {
+                            android.widget.Toast.makeText(this@MainActivity, "Firebase Auth Failed: ${task.exception?.message}", android.widget.Toast.LENGTH_LONG).show()
                         }
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(this@MainActivity, "Google Sign-In Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                android.util.Log.e("MainActivity", "Google Sign-In failed", e)
+            }
         }
     }
 }

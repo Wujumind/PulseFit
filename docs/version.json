@@ -1,6 +1,6 @@
 {
-  "versionCode": 16,
-  "versionName": "0.96",
+  "versionCode": 18,
+  "versionName": "1.08",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "Standardized versioning to v0.96. Includes the new Workout Engine, heart logo, and improved Health Connect stability."
+  "releaseNotes": "Updated manual update message: 'Currently on the latest version'. Fixed version consistency between GitHub and the app."
 }

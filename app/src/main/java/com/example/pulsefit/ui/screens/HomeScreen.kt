@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pulsefit.*
 import com.example.pulsefit.R
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -509,7 +508,7 @@ fun SocialContent(socialViewModel: SocialViewModel) {
 }
 
 @Composable
-fun UserResultCard(user: com.example.pulsefit.UserProfile, isFriend: Boolean = false, onClick: () -> Unit) {
+fun UserResultCard(user: UserProfile, isFriend: Boolean = false, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),

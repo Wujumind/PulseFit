@@ -65,7 +65,7 @@ class UserViewModel : ViewModel() {
             "height" to height,
             "weight" to weight,
             "streak" to streak,
-            "totalWorkouts" to totalWorkouts
+            "totalWorkouts" to totalWorkouts,
         )
         db.collection("users").document(userId).set(userData)
     }

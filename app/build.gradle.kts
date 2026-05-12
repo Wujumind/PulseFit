@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.pulsefit"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "0.96"
+        versionCode = 18
+        versionName = "1.08"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
