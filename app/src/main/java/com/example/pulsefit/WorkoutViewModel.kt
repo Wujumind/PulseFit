@@ -78,7 +78,7 @@ class WorkoutViewModel : ViewModel() {
     }
 
     fun toggleCompletion(day: String, completed: Boolean) {
-        completionStatus = completionStatus + (day to completed)
+        completionStatus += (day to completed)
         saveWorkoutData()
         updateGlobalStreak()
     }

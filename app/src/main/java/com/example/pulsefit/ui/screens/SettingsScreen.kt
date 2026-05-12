@@ -37,7 +37,7 @@ fun SettingsScreen(
     healthConnectManager: HealthConnectManager,
 ) {
     var isHealthExpanded by remember { mutableStateOf(value = false) }
-    var isConnected by remember { mutableStateOf(false) }
+    var isConnected by remember { mutableStateOf(value = false) }
     var showInstructionsFor by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -56,12 +56,13 @@ fun SettingsScreen(
                         "1. Open the $showInstructionsFor app.\n" +
                         "2. Go to Settings/Sync.\n" +
                         "3. Enable 'Sync to Health Connect'.\n\n" +
-                        "PulseFit will then automatically see your data!"
+                        "PulseFit will then automatically see your data!",
                 )
             },
             confirmButton = {
-                Button(onClick = {
-                    val packageName = when(showInstructionsFor) {
+                Button(
+                    onClick = {
+                        val packageName = when(showInstructionsFor) {
                         "Samsung Health" -> "com.sec.android.app.shealth"
                         "Garmin Connect" -> "com.garmin.android.apps.connectmobile"
                         "Fitbit" -> "com.fitbit.FitbitMobile"
@@ -164,7 +165,7 @@ fun SettingsScreen(
                             }
                         },
                         modifier = Modifier.clickable { isHealthExpanded = !isHealthExpanded },
-                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
 
                     if (isHealthExpanded) {

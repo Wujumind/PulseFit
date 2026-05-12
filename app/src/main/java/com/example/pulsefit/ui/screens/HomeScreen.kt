@@ -530,7 +530,7 @@ fun UserResultCard(user: UserProfile, isFriend: Boolean = false, onClick: () -> 
 }
 
 @Composable
-fun LeaderboardCard(rank: Int, user: com.example.pulsefit.UserProfile) {
+fun LeaderboardCard(rank: Int, user: UserProfile) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),

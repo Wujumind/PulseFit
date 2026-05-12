@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     private val auth = FirebaseAuth.getInstance()
     
     private val requestPermissions = registerForActivityResult(
-        PermissionController.createRequestPermissionResultContract()
+        PermissionController.createRequestPermissionResultContract(),
     ) { _ ->
         // Permissions granted
     }
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             
             // Keep track if user has manually toggled dark mode
-            var hasUserToggledDarkMode by remember { mutableStateOf(false) }
+            var hasUserToggledDarkMode by remember { mutableStateOf(value = false) }
             var isDarkMode by remember { mutableStateOf(systemDarkMode) }
             var isMetric by remember { mutableStateOf(value = true) }
             
@@ -74,10 +74,9 @@ class MainActivity : ComponentActivity() {
                         context = context,
                         updateInfo = updateInfo,
                         onUpdateDismiss = { updateInfo = null },
-                        onCheckForUpdate = { 
-                            updateInfo = updateManager.checkForUpdate()
-                        }
-                    )
+                    ) {
+                        updateInfo = updateManager.checkForUpdate()
+                    }
                     PulseFitApp(
                         isDarkMode = isDarkMode,
                         onDarkModeChange = { 

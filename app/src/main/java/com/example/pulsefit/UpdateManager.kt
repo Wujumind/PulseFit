@@ -70,7 +70,7 @@ fun UpdateChecker(
     context: Context,
     updateInfo: UpdateInfo?,
     onUpdateDismiss: () -> Unit,
-    onCheckForUpdate: suspend () -> Unit
+    onCheckForUpdate: suspend () -> Unit,
 ) {
     // Check for update immediately on launch
     LaunchedEffect(Unit) {
