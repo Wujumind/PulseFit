@@ -57,6 +57,13 @@ class WorkoutViewModel : ViewModel() {
     fun toggleCompletion(day: String, completed: Boolean) {
         completionStatus = completionStatus + (day to completed)
         saveWorkoutData()
+        updateGlobalStreak()
+    }
+
+    private fun updateGlobalStreak() {
+        val userId = auth.currentUser?.uid ?: return
+        val currentStreak = completionStatus.values.count { it }
+        db.collection("users").document(userId).update("streak", currentStreak)
     }
 
     private fun saveWorkoutData() {

@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val userViewModel: UserViewModel = viewModel()
             val workoutViewModel: WorkoutViewModel = viewModel()
+            val socialViewModel: SocialViewModel = viewModel()
             val systemDarkMode = isSystemInDarkTheme()
             
             // Keep track if user has manually toggled dark mode
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
                         onMetricChange = { isMetric = it },
                         userViewModel = userViewModel,
                         workoutViewModel = workoutViewModel,
+                        socialViewModel = socialViewModel,
                         healthConnectManager = healthConnectManager,
                         onGoogleSignIn = { signInWithGoogle(userViewModel) },
                         onRequestHealthPermissions = { 
@@ -135,6 +137,7 @@ fun PulseFitApp(
     onMetricChange: (Boolean) -> Unit,
     userViewModel: UserViewModel,
     workoutViewModel: WorkoutViewModel,
+    socialViewModel: SocialViewModel,
     healthConnectManager: HealthConnectManager,
     onGoogleSignIn: () -> Unit,
     onRequestHealthPermissions: () -> Unit
@@ -158,6 +161,7 @@ fun PulseFitApp(
             HomeScreen(
                 username = userViewModel.username,
                 workoutViewModel = workoutViewModel,
+                socialViewModel = socialViewModel,
                 healthConnectManager = healthConnectManager,
                 onSettingsClick = { navController.navigate("settings") },
             ) { navController.navigate("profile") }

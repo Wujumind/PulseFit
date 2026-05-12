@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun HomeScreen(
     username: String,
     workoutViewModel: WorkoutViewModel,
+    socialViewModel: SocialViewModel,
     healthConnectManager: HealthConnectManager,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -95,7 +96,7 @@ fun HomeScreen(
             when (selectedTab) {
                 0 -> HealthMetricsContent(workoutViewModel, healthConnectManager)
                 1 -> WorkoutsContent(workoutViewModel)
-                2 -> SocialContent()
+                2 -> SocialContent(socialViewModel)
             }
         }
     }
@@ -389,9 +390,13 @@ fun WeeklyScheduler(viewModel: WorkoutViewModel) {
 }
 
 @Composable
-fun SocialContent(socialViewModel: SocialViewModel = viewModel()) {
+fun SocialContent(socialViewModel: SocialViewModel) {
     var searchQuery by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        socialViewModel.loadLeaderboard()
+    }
 
     Column(
         modifier = Modifier
@@ -425,8 +430,27 @@ fun SocialContent(socialViewModel: SocialViewModel = viewModel()) {
 
         if (searchQuery.isNotEmpty()) {
             Text("Search Results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
-            socialViewModel.searchResults.forEach { user ->
-                UserResultCard(user) { socialViewModel.addFriend(user.uid) }
+            
+            if (!socialViewModel.isSearching && socialViewModel.searchResults.isEmpty()) {
+                Text(
+                    text = "No account with that username",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                socialViewModel.searchResults.forEach { user ->
+                    UserResultCard(user) { socialViewModel.addFriend(user.uid) }
+                }
+            }
+        } else {
+            // Show Friends List when not searching
+            if (socialViewModel.friendsList.isNotEmpty()) {
+                Text("Friends", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
+                socialViewModel.friendsList.forEach { friend ->
+                    UserResultCard(friend, isFriend = true) { 
+                        socialViewModel.loadFriendSchedule(friend.uid, friend.username)
+                    }
+                }
             }
         }
 
@@ -439,10 +463,34 @@ fun SocialContent(socialViewModel: SocialViewModel = viewModel()) {
             }
         }
     }
+
+    // Friend Schedule Dialog
+    if (socialViewModel.selectedFriendName != null) {
+        AlertDialog(
+            onDismissRequest = { socialViewModel.selectedFriendName = null },
+            title = { Text("${socialViewModel.selectedFriendName}'s Schedule") },
+            text = {
+                Column {
+                    val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                    days.forEach { day ->
+                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Text(day, fontWeight = FontWeight.Bold, modifier = Modifier.width(40.dp))
+                            Text(socialViewModel.friendSchedule[day] ?: "No plan")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { socialViewModel.selectedFriendName = null }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun UserResultCard(user: com.example.pulsefit.UserProfile, onAddClick: () -> Unit) {
+fun UserResultCard(user: com.example.pulsefit.UserProfile, isFriend: Boolean = false, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
@@ -454,7 +502,11 @@ fun UserResultCard(user: com.example.pulsefit.UserProfile, onAddClick: () -> Uni
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(user.username)
             }
-            Button(onClick = onAddClick) { Text("Add") }
+            if (isFriend) {
+                TextButton(onClick = onClick) { Text("View Schedule") }
+            } else {
+                Button(onClick = onClick) { Text("Add") }
+            }
         }
     }
 }

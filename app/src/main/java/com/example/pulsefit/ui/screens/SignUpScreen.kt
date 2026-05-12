@@ -96,7 +96,7 @@ fun SignUpScreen(
                             .whereEqualTo("username", name)
                             .get()
                             .addOnSuccessListener { documents ->
-                                if (documents.isEmpty) {
+                                if (documents.isEmpty()) {
                                     auth.createUserWithEmailAndPassword(email, password)
                                         .addOnCompleteListener { task ->
                                             if (task.isSuccessful) {

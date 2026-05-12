@@ -21,6 +21,8 @@ class SocialViewModel : ViewModel() {
     var searchResults = mutableStateListOf<UserProfile>()
     var friendsList = mutableStateListOf<UserProfile>()
     var leaderboard = mutableStateListOf<UserProfile>()
+    var friendSchedule = mutableStateMapOf<String, String>()
+    var selectedFriendName by mutableStateOf<String?>(null)
     
     var isSearching by mutableStateOf(false)
 
@@ -32,13 +34,25 @@ class SocialViewModel : ViewModel() {
             } else {
                 friendsList.clear()
                 searchResults.clear()
+                friendSchedule.clear()
+                selectedFriendName = null
             }
+        }
+    }
+
+    fun loadFriendSchedule(friendUid: String, friendName: String) {
+        db.collection("workouts").document(friendUid).get().addOnSuccessListener { doc ->
+            val schedule = doc.get("schedule") as? Map<String, String> ?: emptyMap()
+            friendSchedule.clear()
+            friendSchedule.putAll(schedule)
+            selectedFriendName = friendName
         }
     }
 
     fun searchUsers(query: String) {
         if (query.isBlank()) {
             searchResults.clear()
+            isSearching = false
             return
         }
         isSearching = true
@@ -55,6 +69,9 @@ class SocialViewModel : ViewModel() {
                         searchResults.add(user)
                     }
                 }
+                isSearching = false
+            }
+            .addOnFailureListener {
                 isSearching = false
             }
     }
