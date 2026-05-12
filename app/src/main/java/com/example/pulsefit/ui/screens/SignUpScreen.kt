@@ -12,15 +12,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pulsefit.R
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun SignUpScreen(
-    onSignUpClick: () -> Unit,
+    onSignUpSuccess: () -> Unit,
     onLoginClick: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = Modifier
@@ -29,11 +34,11 @@ fun SignUpScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Image(
-        //     painter = painterResource(id = R.drawable.ic_pulsefit_logo),
-        //     contentDescription = "PulseFit Logo",
-        //     modifier = Modifier.size(80.dp)
-        // )
+        Image(
+            painter = painterResource(id = R.drawable.ic_pulsefit_logo),
+            contentDescription = "PulseFit Logo",
+            modifier = Modifier.size(80.dp)
+        )
         
         Text(
             text = "PulseFit",
@@ -48,6 +53,11 @@ fun SignUpScreen(
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(bottom = 24.dp)
         )
+
+        if (error != null) {
+            Text(error!!, color = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         OutlinedTextField(
             value = name,
@@ -71,12 +81,33 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = onSignUpClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Sign Up")
+        
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Button(
+                onClick = {
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        isLoading = true
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful) {
+                                    onSignUpSuccess()
+                                } else {
+                                    error = task.exception?.message ?: "Sign up failed"
+                                }
+                            }
+                    } else {
+                        error = "Please fill in all fields"
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sign Up")
+            }
         }
+
         TextButton(onClick = onLoginClick) {
             Text("Already have an account? Login")
         }

@@ -24,11 +24,15 @@ import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FacebookAuthProvider
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var callbackManager: CallbackManager
     private lateinit var healthConnectManager: HealthConnectManager
+    private val auth = FirebaseAuth.getInstance()
     
     private val requestPermissions = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
@@ -86,11 +90,16 @@ class MainActivity : ComponentActivity() {
                 val result = credentialManager.getCredential(this@MainActivity, request)
                 val credential = result.credential
                 if (credential is GoogleIdTokenCredential) {
-                    userViewModel.updateUserInfo(
-                        name = credential.displayName ?: "Google User",
-                        photoUrl = credential.profilePictureUri?.toString(),
-                        userEmail = credential.id
-                    )
+                    val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
+                    auth.signInWithCredential(firebaseCredential).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            userViewModel.updateUserInfo(
+                                name = credential.displayName ?: "Google User",
+                                photoUrl = credential.profilePictureUri?.toString(),
+                                userEmail = credential.id
+                            )
+                        }
+                    }
                 }
             } catch (_: Exception) {}
         }
@@ -99,17 +108,22 @@ class MainActivity : ComponentActivity() {
     private fun signInWithFacebook(userViewModel: UserViewModel) {
         LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(result: LoginResult) {
-                val request = GraphRequest.newMeRequest(result.accessToken) { obj, _ ->
-                    val name = obj?.getString("name") ?: "Facebook User"
-                    val email = obj?.getString("email") ?: ""
-                    val id = obj?.getString("id")
-                    val photoUrl = "https://graph.facebook.com/$id/picture?type=large"
-                    userViewModel.updateUserInfo(name, photoUrl, email)
+                val firebaseCredential = FacebookAuthProvider.getCredential(result.accessToken.token)
+                auth.signInWithCredential(firebaseCredential).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val request = GraphRequest.newMeRequest(result.accessToken) { obj, _ ->
+                            val name = obj?.getString("name") ?: "Facebook User"
+                            val email = obj?.getString("email") ?: ""
+                            val id = obj?.getString("id")
+                            val photoUrl = "https://graph.facebook.com/$id/picture?type=large"
+                            userViewModel.updateUserInfo(name, photoUrl, email)
+                        }
+                        val parameters = Bundle()
+                        parameters.putString("fields", "id,name,email")
+                        request.parameters = parameters
+                        request.executeAsync()
+                    }
                 }
-                val parameters = Bundle()
-                parameters.putString("fields", "id,name,email")
-                request.parameters = parameters
-                request.executeAsync()
             }
             override fun onCancel() {}
             override fun onError(error: FacebookException) {}
@@ -143,7 +157,7 @@ fun PulseFitApp(
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             LoginScreen(
-                onLoginClick = { navController.navigate("home") },
+                onLoginSuccess = { navController.navigate("home") },
                 onSignUpClick = { navController.navigate("signup") },
                 onGoogleSignInClick = onGoogleSignIn,
                 onFacebookSignInClick = onFacebookSignIn
@@ -151,7 +165,7 @@ fun PulseFitApp(
         }
         composable("signup") {
             SignUpScreen(
-                onSignUpClick = { navController.navigate("home") },
+                onSignUpSuccess = { navController.navigate("home") },
             ) { navController.popBackStack() }
         }
         composable("home") {
@@ -170,6 +184,7 @@ fun PulseFitApp(
                 onMetricChange = onMetricChange,
                 onBackClick = { navController.popBackStack() },
                 onLogout = {
+                    userViewModel.signOut()
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
