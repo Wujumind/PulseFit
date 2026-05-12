@@ -5,7 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
@@ -48,25 +52,43 @@ class MainActivity : ComponentActivity() {
             val userViewModel: UserViewModel = viewModel()
             val workoutViewModel: WorkoutViewModel = viewModel()
             val systemDarkMode = isSystemInDarkTheme()
+            
+            // Keep track if user has manually toggled dark mode
+            var hasUserToggledDarkMode by remember { mutableStateOf(false) }
             var isDarkMode by remember { mutableStateOf(systemDarkMode) }
             var isMetric by remember { mutableStateOf(value = true) }
             
+            // Sync with system dark mode if user hasn't overridden it
+            LaunchedEffect(systemDarkMode) {
+                if (!hasUserToggledDarkMode) {
+                    isDarkMode = systemDarkMode
+                }
+            }
+
             PulseFitTheme(darkTheme = isDarkMode) {
-                UpdateChecker(LocalContext.current)
-                PulseFitApp(
-                    isDarkMode = isDarkMode,
-                    onDarkModeChange = { isDarkMode = it },
-                    isMetric = isMetric,
-                    onMetricChange = { isMetric = it },
-                    userViewModel = userViewModel,
-                    workoutViewModel = workoutViewModel,
-                    healthConnectManager = healthConnectManager,
-                    onGoogleSignIn = { signInWithGoogle(userViewModel) },
-                    onFacebookSignIn = { signInWithFacebook(userViewModel) },
-                    onRequestHealthPermissions = { 
-                        requestPermissions.launch(healthConnectManager.permissions)
-                    }
-                )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    UpdateChecker(LocalContext.current)
+                    PulseFitApp(
+                        isDarkMode = isDarkMode,
+                        onDarkModeChange = { 
+                            isDarkMode = it
+                            hasUserToggledDarkMode = true
+                        },
+                        isMetric = isMetric,
+                        onMetricChange = { isMetric = it },
+                        userViewModel = userViewModel,
+                        workoutViewModel = workoutViewModel,
+                        healthConnectManager = healthConnectManager,
+                        onGoogleSignIn = { signInWithGoogle(userViewModel) },
+                        onFacebookSignIn = { signInWithFacebook(userViewModel) },
+                        onRequestHealthPermissions = { 
+                            requestPermissions.launch(healthConnectManager.permissions)
+                        }
+                    )
+                }
             }
         }
     }
