@@ -33,6 +33,7 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogout: () -> Unit,
     onIntegrateHealthClick: () -> Unit,
+    onCheckForUpdatesClick: () -> Unit,
     healthConnectManager: HealthConnectManager,
 ) {
     var isHealthExpanded by remember { mutableStateOf(value = false) }
@@ -234,8 +235,13 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text("Version") },
-                supportingContent = { Text("1.04 (Build 14)") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
+                supportingContent = { Text("1.05 (Build 15)") },
+                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
+                trailingContent = {
+                    TextButton(onClick = onCheckForUpdatesClick) {
+                        Text("Check for Updates")
+                    }
+                }
             )
 
             ListItem(
@@ -253,7 +259,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Version 0.96 (Build 12)",
+                text = "Version 1.05 (Build 15)",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier

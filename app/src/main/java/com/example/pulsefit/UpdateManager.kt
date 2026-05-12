@@ -66,18 +66,20 @@ class UpdateManager(private val context: Context) {
 }
 
 @Composable
-fun UpdateChecker(context: Context) {
-    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
-    val updateManager = remember { UpdateManager(context) }
-
-    // Check for update immediately on launch and every time the app comes to foreground
+fun UpdateChecker(
+    context: Context,
+    updateInfo: UpdateInfo?,
+    onUpdateDismiss: () -> Unit,
+    onCheckForUpdate: suspend () -> Unit
+) {
+    // Check for update immediately on launch
     LaunchedEffect(Unit) {
-        updateInfo = updateManager.checkForUpdate()
+        onCheckForUpdate()
     }
 
     updateInfo?.let { info ->
         AlertDialog(
-            onDismissRequest = { /* Force update by not allowing dismissal if you want */ },
+            onDismissRequest = onUpdateDismiss,
             title = { Text("Update Available") },
             text = { Text("A newer version (${info.versionName}) of PulseFit is available. \n\nWhat's new:\n${info.releaseNotes}") },
             confirmButton = {
@@ -86,14 +88,13 @@ fun UpdateChecker(context: Context) {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl))
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         context.startActivity(intent)
-                        // Note: Android handles the download and install flow via the browser/system
                     }
                 ) {
                     Text("Update Now")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { updateInfo = null }) {
+                TextButton(onClick = onUpdateDismiss) {
                     Text("Later")
                 }
             }

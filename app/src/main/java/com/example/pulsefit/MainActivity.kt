@@ -47,6 +47,12 @@ class MainActivity : ComponentActivity() {
             val workoutViewModel: WorkoutViewModel = viewModel()
             val socialViewModel: SocialViewModel = viewModel()
             val systemDarkMode = isSystemInDarkTheme()
+            val context = LocalContext.current
+            
+            // Update Management State
+            val updateManager = remember { UpdateManager(context) }
+            var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+            val scope = rememberCoroutineScope()
             
             // Keep track if user has manually toggled dark mode
             var hasUserToggledDarkMode by remember { mutableStateOf(false) }
@@ -65,7 +71,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    UpdateChecker(LocalContext.current)
+                    UpdateChecker(
+                        context = context,
+                        updateInfo = updateInfo,
+                        onUpdateDismiss = { updateInfo = null },
+                        onCheckForUpdate = { 
+                            updateInfo = updateManager.checkForUpdate()
+                        }
+                    )
                     PulseFitApp(
                         isDarkMode = isDarkMode,
                         onDarkModeChange = { 
@@ -81,6 +94,14 @@ class MainActivity : ComponentActivity() {
                         onGoogleSignIn = { signInWithGoogle(userViewModel) },
                         onRequestHealthPermissions = { 
                             requestPermissions.launch(healthConnectManager.permissions)
+                        },
+                        onManualUpdateCheck = {
+                            scope.launch {
+                                updateInfo = updateManager.checkForUpdate()
+                                if (updateInfo == null) {
+                                    android.widget.Toast.makeText(context, "App is up to date", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                     )
                 }
@@ -140,7 +161,8 @@ fun PulseFitApp(
     socialViewModel: SocialViewModel,
     healthConnectManager: HealthConnectManager,
     onGoogleSignIn: () -> Unit,
-    onRequestHealthPermissions: () -> Unit
+    onRequestHealthPermissions: () -> Unit,
+    onManualUpdateCheck: () -> Unit
 ) {
     val navController = rememberNavController()
 
@@ -181,7 +203,8 @@ fun PulseFitApp(
                     }
                 },
                 onIntegrateHealthClick = onRequestHealthPermissions,
-                healthConnectManager = healthConnectManager
+                healthConnectManager = healthConnectManager,
+                onCheckForUpdatesClick = onManualUpdateCheck
             )
         }
         composable("profile") {
