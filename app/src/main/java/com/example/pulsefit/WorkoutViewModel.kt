@@ -65,10 +65,34 @@ class WorkoutViewModel : ViewModel() {
         db.collection("workouts").document(userId).get().addOnSuccessListener { document ->
             if (document != null && document.exists()) {
                 @Suppress("UNCHECKED_CAST")
-                schedule = (document.get("schedule") as? Map<String, String>) ?: schedule
+                val remoteSchedule = document.get("schedule") as? Map<String, String>
+                if (remoteSchedule != null) schedule = remoteSchedule
+                
                 @Suppress("UNCHECKED_CAST")
-                completionStatus = (document.get("completionStatus") as? Map<String, Boolean>) ?: completionStatus
+                val remoteCompletion = document.get("completionStatus") as? Map<String, Boolean>
+                if (remoteCompletion != null) completionStatus = remoteCompletion
             }
         }
+    }
+
+    fun clearData() {
+        schedule = mapOf(
+            "Mon" to "Chest & Triceps",
+            "Tue" to "Back & Biceps",
+            "Wed" to "Rest Day",
+            "Thu" to "Legs",
+            "Fri" to "Shoulders",
+            "Sat" to "Full Body / Cardio",
+            "Sun" to "Rest Day"
+        )
+        completionStatus = mapOf(
+            "Mon" to false,
+            "Tue" to false,
+            "Wed" to true,
+            "Thu" to false,
+            "Fri" to false,
+            "Sat" to false,
+            "Sun" to true
+        )
     }
 }

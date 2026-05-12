@@ -60,5 +60,7 @@ class UserViewModel : ViewModel() {
         username = "User123"
         profilePictureUrl = null
         email = ""
+        height = "175"
+        weight = "70"
     }
 }

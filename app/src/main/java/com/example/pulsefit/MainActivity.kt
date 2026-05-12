@@ -213,6 +213,7 @@ fun PulseFitApp(
                 onBackClick = { navController.popBackStack() },
                 onLogout = {
                     userViewModel.signOut()
+                    workoutViewModel.clearData()
                     navController.navigate("login") {
                         popUpTo("login") { inclusive = true }
                     }
