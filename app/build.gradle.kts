@@ -13,10 +13,16 @@ android {
         applicationId = "com.example.pulsefit"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.03"
+        versionCode = 14
+        versionName = "1.04"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    android.applicationVariants.all {
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName = "PulseFit.apk"
+        }
     }
 
     buildTypes {

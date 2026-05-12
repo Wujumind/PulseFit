@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Watch
@@ -223,6 +224,19 @@ fun SettingsScreen(
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text(
+                text = "App Info",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            ListItem(
+                headlineContent = { Text("Version") },
+                supportingContent = { Text("1.04 (Build 14)") },
+                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
+            )
 
             ListItem(
                 headlineContent = { Text("Logout", color = MaterialTheme.colorScheme.error) },

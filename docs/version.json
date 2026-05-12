@@ -1,6 +1,6 @@
 {
-  "versionCode": 100,
-  "versionName": "2.0.0",
-  "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/app-debug.apk",
-  "releaseNotes": "Critical Update: Fixed the auto-update system and improved background syncing. Please update now to ensure you receive future features automatically!"
+  "versionCode": 14,
+  "versionName": "1.04",
+  "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
+  "releaseNotes": "Renamed app to PulseFit, added App Info section in settings, and updated versioning to 1.04."
 }
