@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "1.05",
+  "versionCode": 16,
+  "versionName": "0.96",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "New Workout Engine! Days turn Green when you finish a workout, Red if you miss one, and Gray for future plans. Added a 'Start Today' button."
+  "releaseNotes": "Standardized versioning to v0.96. Includes the new Workout Engine, heart logo, and improved Health Connect stability."
 }
