@@ -21,7 +21,6 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit,
     onGoogleSignInClick: () -> Unit,
-    onFacebookSignInClick: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -121,14 +120,11 @@ fun LoginScreen(
         Text(text = "Or sign in with")
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row {
-            Button(onClick = onGoogleSignInClick, modifier = Modifier.weight(1f)) {
-                Text("Google")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = onFacebookSignInClick, modifier = Modifier.weight(1f)) {
-                Text("Facebook")
-            }
+        Button(
+            onClick = onGoogleSignInClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Google")
         }
     }
 }

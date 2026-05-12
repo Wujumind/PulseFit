@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1234567890",
-    "project_id": "pulsefit-dummy",
-    "storage_bucket": "pulsefit-dummy.appspot.com"
+    "project_number": "904782209269",
+    "project_id": "pulsefit-09fedb00",
+    "storage_bucket": "pulsefit-09fedb00.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1234567890:android:3465873465",
+        "mobilesdk_app_id": "1:904782209269:android:b6e1679c829b85736ee5bc",
         "android_client_info": {
           "package_name": "com.example.pulsefit"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "dummy-api-key"
+          "current_key": "AIzaSyAs2TB1giWbcjaocjBP68ADCqhB1uebUK0"
         }
       ],
       "services": {

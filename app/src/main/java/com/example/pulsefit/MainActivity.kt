@@ -5,12 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
@@ -22,18 +22,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pulsefit.ui.screens.*
 import com.example.pulsefit.ui.theme.PulseFitTheme
-import com.facebook.*
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var callbackManager: CallbackManager
     private lateinit var healthConnectManager: HealthConnectManager
     private val auth = FirebaseAuth.getInstance()
     
@@ -45,7 +40,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        callbackManager = CallbackManager.Factory.create()
         healthConnectManager = HealthConnectManager(this)
         enableEdgeToEdge()
         setContent {
@@ -83,7 +77,6 @@ class MainActivity : ComponentActivity() {
                         workoutViewModel = workoutViewModel,
                         healthConnectManager = healthConnectManager,
                         onGoogleSignIn = { signInWithGoogle(userViewModel) },
-                        onFacebookSignIn = { signInWithFacebook(userViewModel) },
                         onRequestHealthPermissions = { 
                             requestPermissions.launch(healthConnectManager.permissions)
                         }
@@ -132,39 +125,6 @@ class MainActivity : ComponentActivity() {
             } catch (_: Exception) {}
         }
     }
-
-    private fun signInWithFacebook(userViewModel: UserViewModel) {
-        LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-            override fun onSuccess(result: LoginResult) {
-                val firebaseCredential = FacebookAuthProvider.getCredential(result.accessToken.token)
-                auth.signInWithCredential(firebaseCredential).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val request = GraphRequest.newMeRequest(result.accessToken) { obj, _ ->
-                            val name = obj?.getString("name") ?: "Facebook User"
-                            val email = obj?.getString("email") ?: ""
-                            val id = obj?.getString("id")
-                            val photoUrl = "https://graph.facebook.com/$id/picture?type=large"
-                            userViewModel.updateUserInfo(name, photoUrl, email)
-                        }
-                        val parameters = Bundle()
-                        parameters.putString("fields", "id,name,email")
-                        request.parameters = parameters
-                        request.executeAsync()
-                    }
-                }
-            }
-            override fun onCancel() {}
-            override fun onError(error: FacebookException) {}
-        })
-        LoginManager.getInstance().logInWithReadPermissions(this, listOf("email", "public_profile"))
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
-        callbackManager.onActivityResult(requestCode, resultCode, data)
-    }
 }
 
 @Composable
@@ -177,7 +137,6 @@ fun PulseFitApp(
     workoutViewModel: WorkoutViewModel,
     healthConnectManager: HealthConnectManager,
     onGoogleSignIn: () -> Unit,
-    onFacebookSignIn: () -> Unit,
     onRequestHealthPermissions: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -187,8 +146,7 @@ fun PulseFitApp(
             LoginScreen(
                 onLoginSuccess = { navController.navigate("home") },
                 onSignUpClick = { navController.navigate("signup") },
-                onGoogleSignInClick = onGoogleSignIn,
-                onFacebookSignInClick = onFacebookSignIn
+                onGoogleSignInClick = onGoogleSignIn
             )
         }
         composable("signup") {
