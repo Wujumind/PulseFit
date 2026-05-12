@@ -32,9 +32,9 @@ fun SettingsScreen(
     onBackClick: () -> Unit,
     onLogout: () -> Unit,
     onIntegrateHealthClick: () -> Unit,
-    healthConnectManager: HealthConnectManager
+    healthConnectManager: HealthConnectManager,
 ) {
-    var isHealthExpanded by remember { mutableStateOf(false) }
+    var isHealthExpanded by remember { mutableStateOf(value = false) }
     var isConnected by remember { mutableStateOf(false) }
     var showInstructionsFor by remember { mutableStateOf<String?>(null) }
 
@@ -44,14 +44,18 @@ fun SettingsScreen(
     
     if (showInstructionsFor != null) {
         AlertDialog(
-            onDismissRequest = { showInstructionsFor = null },
+            onDismissRequest = { 
+                showInstructionsFor = null 
+            },
             title = { Text("Connect $showInstructionsFor") },
             text = { 
-                Text("To sync data from $showInstructionsFor, please:\n\n" +
-                    "1. Open the $showInstructionsFor app.\n" +
-                    "2. Go to Settings/Sync.\n" +
-                    "3. Enable 'Sync to Health Connect'.\n\n" +
-                    "PulseFit will then automatically see your data!")
+                Text(
+                    text = "To sync data from $showInstructionsFor, please:\n\n" +
+                        "1. Open the $showInstructionsFor app.\n" +
+                        "2. Go to Settings/Sync.\n" +
+                        "3. Enable 'Sync to Health Connect'.\n\n" +
+                        "PulseFit will then automatically see your data!"
+                )
             },
             confirmButton = {
                 Button(onClick = {
@@ -200,9 +204,9 @@ fun SettingsScreen(
                                         Text(if (isConnected) "Settings" else "Connect")
                                     }
                                 },
-                                colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                             )
-                            if (index < trackers.size - 1) {
+                            if (index < (trackers.size - 1)) {
                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                             }
                         }

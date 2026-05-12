@@ -78,7 +78,7 @@ fun HomeScreen(
                             selected = selectedTab == index,
                             onClick = { selectedTab = index },
                             text = { Text(title) },
-                            icon = { Icon(icons[index], contentDescription = null) }
+                            icon = { Icon(icons[index], contentDescription = null) },
                         )
                     }
                 }
