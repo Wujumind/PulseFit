@@ -235,6 +235,18 @@ fun SettingsScreen(
                 },
                 modifier = Modifier.clickable { onLogout() }
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "Version 0.96 (Build 12)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }
