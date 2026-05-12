@@ -1,6 +1,6 @@
 {
-  "versionCode": 11,
-  "versionName": "0.95",
+  "versionCode": 12,
+  "versionName": "0.96",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/app-debug.apk",
-  "releaseNotes": "New app logo! The green Android is gone, replaced with the clean PulseFit heart logo. Also includes reliability fixes for updates."
+  "releaseNotes": "Finalizing branding and update system. Version 0.96 includes the new heart logo and improved health connect stability."
 }
