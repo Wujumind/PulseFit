@@ -1,6 +1,6 @@
 {
-  "versionCode": 12,
-  "versionName": "0.96",
+  "versionCode": 100,
+  "versionName": "2.0.0",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/app-debug.apk",
-  "releaseNotes": "Finalizing branding and update system. Version 0.96 includes the new heart logo and improved health connect stability."
+  "releaseNotes": "Critical Update: Fixed the auto-update system and improved background syncing. Please update now to ensure you receive future features automatically!"
 }

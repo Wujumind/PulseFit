@@ -26,9 +26,10 @@ data class UpdateInfo(
 class UpdateManager(private val context: Context) {
     private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
-    private val updateUrl = "https://wujumind.github.io/PulseFit/version.json"
+    private val updateUrl = "https://raw.githubusercontent.com/Wujumind/PulseFit/main/docs/version.json"
 
     suspend fun checkForUpdate(): UpdateInfo? {
+        android.util.Log.d("UpdateManager", "Checking for updates at: $updateUrl")
         return withContext(Dispatchers.IO) {
             try {
                 // Add a timestamp to bypass any potential caching
@@ -53,9 +54,11 @@ class UpdateManager(private val context: Context) {
                     }
                     
                     // Priority check for faster updates
+                    android.util.Log.d("UpdateManager", "Current version: $currentVersion, Cloud version: ${info.versionCode}")
                     if (info.versionCode > currentVersion) info else null
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.e("UpdateManager", "Update check failed", e)
                 null
             }
         }
