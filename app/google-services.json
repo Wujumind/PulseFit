@@ -12,7 +12,20 @@
           "package_name": "com.example.pulsefit"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "904782209269-251sd7ds5bpq99pk1slvhinudodvc5me.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pulsefit",
+            "certificate_hash": "b1f0147ef155b131b79024bf16b2d41edae071b0"
+          }
+        },
+        {
+          "client_id": "904782209269-n115kq86uceqcfav4ukassnpil9tegaf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAs2TB1giWbcjaocjBP68ADCqhB1uebUK0"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "904782209269-n115kq86uceqcfav4ukassnpil9tegaf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

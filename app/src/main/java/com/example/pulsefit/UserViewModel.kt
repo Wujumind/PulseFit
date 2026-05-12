@@ -1,8 +1,6 @@
 package com.example.pulsefit
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,6 +14,17 @@ class UserViewModel : ViewModel() {
     var email by mutableStateOf("")
     var height by mutableStateOf("175")
     var weight by mutableStateOf("70")
+    var streak by mutableIntStateOf(0)
+    var totalWorkouts by mutableIntStateOf(0)
+
+    fun checkUsernameExists(username: String, onResult: (Boolean) -> Unit) {
+        db.collection("users")
+            .whereEqualTo("username", username)
+            .get()
+            .addOnSuccessListener { documents ->
+                onResult(!documents.isEmpty)
+            }
+    }
 
     init {
         val currentUser = auth.currentUser
@@ -39,7 +48,9 @@ class UserViewModel : ViewModel() {
             "profilePictureUrl" to profilePictureUrl,
             "email" to email,
             "height" to height,
-            "weight" to weight
+            "weight" to weight,
+            "streak" to streak,
+            "totalWorkouts" to totalWorkouts
         )
         db.collection("users").document(userId).set(userData)
     }
@@ -51,6 +62,8 @@ class UserViewModel : ViewModel() {
                 profilePictureUrl = document.getString("profilePictureUrl")
                 height = document.getString("height") ?: "175"
                 weight = document.getString("weight") ?: "70"
+                streak = document.getLong("streak")?.toInt() ?: 0
+                totalWorkouts = document.getLong("totalWorkouts")?.toInt() ?: 0
             }
         }
     }

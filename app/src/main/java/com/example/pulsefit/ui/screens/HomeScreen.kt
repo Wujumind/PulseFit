@@ -22,9 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pulsefit.*
 import com.example.pulsefit.R
-import com.example.pulsefit.WorkoutViewModel
-import com.example.pulsefit.HealthConnectManager
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -389,59 +389,89 @@ fun WeeklyScheduler(viewModel: WorkoutViewModel) {
 }
 
 @Composable
-fun SocialContent() {
+fun SocialContent(socialViewModel: SocialViewModel = viewModel()) {
+    var searchQuery by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(scrollState),
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Fitness Community",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Placeholder for social feed
-        repeat(5) { index ->
-            SocialPostCard(
-                username = "Athlete ${index + 1}",
-                activity = "Completed a 5km Run",
-                time = "${index + 1}h ago"
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { 
+                searchQuery = it
+                socialViewModel.searchUsers(it)
+            },
+            label = { Text("Search usernames...") },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                if (socialViewModel.isSearching) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (searchQuery.isNotEmpty()) {
+            Text("Search Results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
+            socialViewModel.searchResults.forEach { user ->
+                UserResultCard(user) { socialViewModel.addFriend(user.uid) }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Leaderboard", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
+        Column(modifier = Modifier.verticalScroll(scrollState)) {
+            socialViewModel.leaderboard.forEachIndexed { index, user ->
+                LeaderboardCard(index + 1, user)
+            }
         }
     }
 }
 
 @Composable
-fun SocialPostCard(username: String, activity: String, time: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+fun UserResultCard(user: com.example.pulsefit.UserProfile, onAddClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(32.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(user.username)
+            }
+            Button(onClick = onAddClick) { Text("Add") }
+        }
+    }
+}
+
+@Composable
+fun LeaderboardCard(rank: Int, user: com.example.pulsefit.UserProfile) {
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Row(
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(text = username, style = MaterialTheme.typography.titleMedium)
-                Text(text = activity, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    text = time,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
+            Text("#$rank", fontWeight = FontWeight.Bold, modifier = Modifier.width(40.dp))
+            Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(32.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(user.username, fontWeight = FontWeight.Bold)
+                Text("${user.streak} day streak", style = MaterialTheme.typography.bodySmall)
             }
         }
     }

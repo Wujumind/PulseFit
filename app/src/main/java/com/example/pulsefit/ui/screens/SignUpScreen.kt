@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pulsefit.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun SignUpScreen(
@@ -26,6 +27,7 @@ fun SignUpScreen(
     var isLoading by remember { mutableStateOf(value = false) }
 
     val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     Column(
         modifier = Modifier
@@ -87,15 +89,39 @@ fun SignUpScreen(
         } else {
             Button(
                 onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                    if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty()) {
                         isLoading = true
-                        auth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                isLoading = false
-                                if (task.isSuccessful) {
-                                    onSignUpSuccess()
+                        // Check if username is taken first
+                        db.collection("users")
+                            .whereEqualTo("username", name)
+                            .get()
+                            .addOnSuccessListener { documents ->
+                                if (documents.isEmpty) {
+                                    auth.createUserWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                // Initialize user profile in Firestore
+                                                val userId = auth.currentUser?.uid ?: ""
+                                                val userData = mapOf(
+                                                    "username" to name,
+                                                    "email" to email,
+                                                    "streak" to 0,
+                                                    "totalWorkouts" to 0,
+                                                    "friends" to emptyList<String>()
+                                                )
+                                                db.collection("users").document(userId).set(userData)
+                                                    .addOnSuccessListener {
+                                                        isLoading = false
+                                                        onSignUpSuccess()
+                                                    }
+                                            } else {
+                                                isLoading = false
+                                                error = task.exception?.message ?: "Sign up failed"
+                                            }
+                                        }
                                 } else {
-                                    error = task.exception?.message ?: "Sign up failed"
+                                    isLoading = false
+                                    error = "Username is already taken"
                                 }
                             }
                     } else {
