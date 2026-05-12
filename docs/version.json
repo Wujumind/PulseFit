@@ -1,6 +1,6 @@
 {
-  "versionCode": 18,
-  "versionName": "1.08",
+  "versionCode": 15,
+  "versionName": "1.05",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "Updated manual update message: 'Currently on the latest version'. Fixed version consistency between GitHub and the app."
+  "releaseNotes": "Re-releasing v1.05 with improved manual update check UI and refined social features."
 }

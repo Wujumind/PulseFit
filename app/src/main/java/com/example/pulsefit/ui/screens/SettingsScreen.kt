@@ -235,13 +235,16 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text("Version") },
-                supportingContent = { Text("1.08 (Build 18)") },
+                supportingContent = { Text("1.05 (Build 15)") },
                 leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
-                trailingContent = {
-                    TextButton(onClick = onCheckForUpdatesClick) {
-                        Text("Check for Updates")
-                    }
-                }
+            )
+
+            ListItem(
+                headlineContent = { Text("Check for Updates") },
+                supportingContent = { Text("Get the latest features and fixes") },
+                leadingContent = { Icon(Icons.Default.HealthAndSafety, contentDescription = null) }, // Reusing an icon for update
+                modifier = Modifier.clickable { onCheckForUpdatesClick() },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
 
             ListItem(
@@ -259,7 +262,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Version 1.08 (Build 18)",
+                text = "Version 1.05 (Build 15)",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier
