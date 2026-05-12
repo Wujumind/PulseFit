@@ -25,8 +25,15 @@ class SocialViewModel : ViewModel() {
     var isSearching by mutableStateOf(false)
 
     init {
-        loadFriends()
-        loadLeaderboard()
+        auth.addAuthStateListener { firebaseAuth ->
+            if (firebaseAuth.currentUser != null) {
+                loadFriends()
+                loadLeaderboard()
+            } else {
+                friendsList.clear()
+                searchResults.clear()
+            }
+        }
     }
 
     fun searchUsers(query: String) {

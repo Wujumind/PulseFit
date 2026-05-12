@@ -27,11 +27,26 @@ class UserViewModel : ViewModel() {
     }
 
     init {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            email = currentUser.email ?: ""
-            loadUserData(currentUser.uid)
+        auth.addAuthStateListener { firebaseAuth ->
+            val currentUser = firebaseAuth.currentUser
+            if (currentUser != null) {
+                email = currentUser.email ?: ""
+                loadUserData(currentUser.uid)
+            } else {
+                // Reset state on sign out
+                resetState()
+            }
         }
+    }
+
+    private fun resetState() {
+        username = "User123"
+        profilePictureUrl = null
+        email = ""
+        height = "175"
+        weight = "70"
+        streak = 0
+        totalWorkouts = 0
     }
 
     fun updateUserInfo(name: String, photoUrl: String?, userEmail: String) {

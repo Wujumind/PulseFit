@@ -36,7 +36,14 @@ class WorkoutViewModel : ViewModel() {
     )
 
     init {
-        auth.currentUser?.let { loadWorkoutData(it.uid) }
+        auth.addAuthStateListener { firebaseAuth ->
+            val currentUser = firebaseAuth.currentUser
+            if (currentUser != null) {
+                loadWorkoutData(currentUser.uid)
+            } else {
+                clearData()
+            }
+        }
     }
 
     fun updateSchedule(day: String, workout: String) {
