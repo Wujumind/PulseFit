@@ -116,6 +116,7 @@ class MainActivity : ComponentActivity() {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(serverClientId)
+            .setAutoSelectEnabled(false)
             .build()
 
         val request = GetCredentialRequest.Builder()
@@ -124,8 +125,10 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
+                android.util.Log.d("MainActivity", "Starting Google Sign-In request...")
                 val result = credentialManager.getCredential(this@MainActivity, request)
                 val credential = result.credential
+                
                 if (credential is GoogleIdTokenCredential) {
                     val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
                     auth.signInWithCredential(firebaseCredential).addOnCompleteListener { task ->
@@ -136,12 +139,18 @@ class MainActivity : ComponentActivity() {
                                 userEmail = credential.id
                             )
                         } else {
-                            android.widget.Toast.makeText(this@MainActivity, "Firebase Auth Failed: ${task.exception?.message}", android.widget.Toast.LENGTH_LONG).show()
+                            val msg = "Firebase Auth Failed: ${task.exception?.message}"
+                            android.widget.Toast.makeText(this@MainActivity, msg, android.widget.Toast.LENGTH_LONG).show()
+                            android.util.Log.e("MainActivity", msg)
                         }
                     }
                 }
             } catch (e: Exception) {
-                android.widget.Toast.makeText(this@MainActivity, "Google Sign-In Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                val errorMsg = when (e) {
+                    is androidx.credentials.exceptions.GetCredentialException -> "Google Sign-In Error: No account found or cancelled. (${e.message})"
+                    else -> "Google Sign-In Error: ${e.message}"
+                }
+                android.widget.Toast.makeText(this@MainActivity, errorMsg, android.widget.Toast.LENGTH_LONG).show()
                 android.util.Log.e("MainActivity", "Google Sign-In failed", e)
             }
         }
