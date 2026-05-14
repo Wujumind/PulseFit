@@ -1,6 +1,7 @@
 package com.example.pulsefit.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +35,7 @@ fun HomeScreen(
     healthConnectManager: HealthConnectManager,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onMetricClick: (String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Metrics", "Workouts", "Social")
@@ -93,7 +95,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (selectedTab) {
-                0 -> HealthMetricsContent(workoutViewModel, healthConnectManager)
+                0 -> HealthMetricsContent(workoutViewModel, healthConnectManager, onMetricClick)
                 1 -> WorkoutsContent(workoutViewModel)
                 2 -> SocialContent(socialViewModel)
             }
@@ -103,20 +105,27 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManager: HealthConnectManager) {
+fun HealthMetricsContent(
+    workoutViewModel: WorkoutViewModel, 
+    healthConnectManager: HealthConnectManager,
+    onMetricClick: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
     
     var currentHeartRate by remember { mutableStateOf("--") }
     var restingHeartRate by remember { mutableStateOf("--") }
     var hrv by remember { mutableStateOf("--") }
+    var lastUpdated by remember { mutableStateOf("") }
 
     // Re-fetch data whenever the screen is visible
     LaunchedEffect(Unit) {
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
         while(true) {
             if (healthConnectManager.hasAllPermissions()) {
                 currentHeartRate = healthConnectManager.readCurrentHeartRate()?.toString() ?: "--"
                 restingHeartRate = healthConnectManager.readRestingHeartRate()?.toString() ?: "--"
                 hrv = healthConnectManager.readHRV()?.let { "%.1f".format(it) } ?: "--"
+                lastUpdated = java.time.LocalTime.now().format(formatter)
             }
             kotlinx.coroutines.delay(15000) // Refresh every 15 seconds
         }
@@ -130,13 +139,23 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManage
     ) {
         WeeklyWorkoutTracker(workoutViewModel)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Last updated: $lastUpdated",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         MetricCard(
             title = "Current Heart Rate",
             value = currentHeartRate,
             unit = "BPM",
-            color = Color.Red
+            color = Color.Red,
+            onClick = { onMetricClick("Heart Rate") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -145,7 +164,8 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManage
             title = "Resting Heart Rate",
             value = restingHeartRate,
             unit = "BPM",
-            color = Color(0xFFFF5722) // Orange-Red
+            color = Color(0xFFFF5722), // Orange-Red
+            onClick = { onMetricClick("Resting Heart Rate") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -155,7 +175,8 @@ fun HealthMetricsContent(workoutViewModel: WorkoutViewModel, healthConnectManage
             value = hrv,
             unit = "ms",
             color = MaterialTheme.colorScheme.primary,
-            statusMessage = if (hrv != "--") "Your HRV is within the healthy range." else "Connect health app to see data."
+            statusMessage = if (hrv != "--") "Your HRV is within the healthy range." else "Connect health app to see data.",
+            onClick = { onMetricClick("HRV") }
         )
         
         // Add more spacers at the bottom for better scroll feel
@@ -169,10 +190,13 @@ fun MetricCard(
     value: String,
     unit: String,
     color: Color,
-    statusMessage: String? = null
+    statusMessage: String? = null,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier

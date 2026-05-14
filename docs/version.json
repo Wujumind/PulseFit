@@ -1,6 +1,6 @@
 {
-  "versionCode": 21,
-  "versionName": "1.11",
+  "versionCode": 22,
+  "versionName": "1.12",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "Improved Google Sign-In diagnostics, optimized manual update UI, and finalized social system integration."
+  "releaseNotes": "Live Tracking & History! Added detailed metric views with historical graphs. Metrics now update live with a timestamp. Replaced default Android logo with the official PulseFit heart."
 }

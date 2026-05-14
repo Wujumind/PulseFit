@@ -193,7 +193,9 @@ fun PulseFitApp(
                 socialViewModel = socialViewModel,
                 healthConnectManager = healthConnectManager,
                 onSettingsClick = { navController.navigate("settings") },
-            ) { navController.navigate("profile") }
+                onProfileClick = { navController.navigate("profile") },
+                onMetricClick = { metric -> navController.navigate("metric_detail/$metric") }
+            )
         }
         composable("settings") {
             SettingsScreen(
@@ -218,6 +220,13 @@ fun PulseFitApp(
             ProfileScreen(
                 userViewModel = userViewModel,
                 isMetric = isMetric
+            ) { navController.popBackStack() }
+        }
+        composable("metric_detail/{metricName}") { backStackEntry ->
+            val metricName = backStackEntry.arguments?.getString("metricName") ?: ""
+            MetricDetailScreen(
+                metricName = metricName,
+                healthConnectManager = healthConnectManager
             ) { navController.popBackStack() }
         }
     }

@@ -1,6 +1,8 @@
 package com.example.pulsefit
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
@@ -8,9 +10,6 @@ import androidx.health.connect.client.records.RestingHeartRateRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import android.os.Build
-import android.content.Intent
-import android.net.Uri
 import java.time.Instant
 import java.time.ZonedDateTime
 
@@ -43,21 +42,11 @@ class HealthConnectManager(private val context: Context) {
         if (intent != null) {
             context.startActivity(intent)
         } else {
-            // If app not installed, open Play Store
             val storeIntent = Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("market://details?id=$packageName")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(storeIntent)
-        }
-    }
-
-    fun isAppInstalled(packageName: String): Boolean {
-        return try {
-            context.packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (e: Exception) {
-            false
         }
     }
 
@@ -74,16 +63,16 @@ class HealthConnectManager(private val context: Context) {
         val startTime = Instant.now().minus(java.time.Duration.ofDays(7))
         val endTime = Instant.now()
 
-        try {
+        return try {
             val response = client.readRecords(
                 ReadRecordsRequest(
                     recordType = RestingHeartRateRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
                 )
             )
-            return response.records.maxByOrNull { it.time }?.beatsPerMinute
+            response.records.maxByOrNull { it.time }?.beatsPerMinute
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 
@@ -91,21 +80,19 @@ class HealthConnectManager(private val context: Context) {
         val client = healthConnectClient ?: return null
         if (!hasAllPermissions()) return null
 
-        // Look back 1 hour for the most recent heart rate sample
         val startTime = Instant.now().minus(java.time.Duration.ofHours(1))
         val endTime = Instant.now()
 
-        try {
+        return try {
             val response = client.readRecords(
                 ReadRecordsRequest(
                     recordType = HeartRateRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
                 )
             )
-            // HeartRateRecord contains a list of samples
-            return response.records.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute
+            response.records.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 
@@ -116,16 +103,78 @@ class HealthConnectManager(private val context: Context) {
         val startTime = Instant.now().minus(java.time.Duration.ofDays(7))
         val endTime = Instant.now()
 
-        try {
+        return try {
             val response = client.readRecords(
                 ReadRecordsRequest(
                     recordType = HeartRateVariabilityRmssdRecord::class,
                     timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
                 )
             )
-            return response.records.maxByOrNull { it.time }?.heartRateVariabilityMillis
+            response.records.maxByOrNull { it.time }?.heartRateVariabilityMillis
         } catch (e: Exception) {
-            return null
+            null
+        }
+    }
+
+    suspend fun readHeartRateHistory(): List<Pair<Instant, Long>> {
+        val client = healthConnectClient ?: return emptyList()
+        if (!hasAllPermissions()) return emptyList()
+
+        val startTime = Instant.now().minus(java.time.Duration.ofDays(1))
+        val endTime = Instant.now()
+
+        return try {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = HeartRateRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+            response.records.flatMap { record ->
+                record.samples.map { sample -> sample.time to sample.beatsPerMinute }
+            }.sortedBy { it.first }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun readRestingHeartRateHistory(): List<Pair<Instant, Long>> {
+        val client = healthConnectClient ?: return emptyList()
+        if (!hasAllPermissions()) return emptyList()
+
+        val startTime = Instant.now().minus(java.time.Duration.ofDays(30))
+        val endTime = Instant.now()
+
+        return try {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = RestingHeartRateRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+            response.records.map { it.time to it.beatsPerMinute }.sortedBy { it.first }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun readHRVHistory(): List<Pair<Instant, Double>> {
+        val client = healthConnectClient ?: return emptyList()
+        if (!hasAllPermissions()) return emptyList()
+
+        val startTime = Instant.now().minus(java.time.Duration.ofDays(30))
+        val endTime = Instant.now()
+
+        return try {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = HeartRateVariabilityRmssdRecord::class,
+                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+                )
+            )
+            response.records.map { it.time to it.heartRateVariabilityMillis }.sortedBy { it.first }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }
