@@ -29,10 +29,8 @@ class UpdateManager(private val context: Context) {
     private val updateUrl = "https://raw.githubusercontent.com/Wujumind/PulseFit/main/docs/version.json"
 
     suspend fun checkForUpdate(): UpdateInfo? {
-        android.util.Log.d("UpdateManager", "Checking for updates at: $updateUrl")
         return withContext(Dispatchers.IO) {
             try {
-                // Add a timestamp to bypass any potential caching
                 val urlWithCacheBuster = "$updateUrl?t=${System.currentTimeMillis()}"
                 val request = Request.Builder().url(urlWithCacheBuster).build()
                 client.newCall(request).execute().use { response ->
@@ -53,8 +51,6 @@ class UpdateManager(private val context: Context) {
                         packageInfo.versionCode
                     }
                     
-                    // Priority check for faster updates
-                    android.util.Log.d("UpdateManager", "Current version: $currentVersion, Cloud version: ${info.versionCode}")
                     if (info.versionCode > currentVersion) info else null
                 }
             } catch (e: Exception) {
@@ -72,7 +68,6 @@ fun UpdateChecker(
     onUpdateDismiss: () -> Unit,
     onCheckForUpdate: suspend () -> Unit,
 ) {
-    // Check for update immediately on launch
     LaunchedEffect(Unit) {
         onCheckForUpdate()
     }

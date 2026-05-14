@@ -1,6 +1,6 @@
 {
-  "versionCode": 23,
-  "versionName": "1.13-TEST",
+  "versionCode": 30,
+  "versionName": "1.13",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "This is a test update to verify the manual update system. If you see this, the system is working perfectly!"
+  "releaseNotes": "Live Tracking & History! Added detailed metric views with historical graphs. Metrics now update live with a timestamp."
 }
