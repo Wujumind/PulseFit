@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.sp
 import com.example.pulsefit.*
 import com.example.pulsefit.R
 
+/**
+ * The primary screen of the application.
+ * Manages three main tabs: Metrics (Health Data), Workouts (Scheduler), and Social (Community).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -35,7 +39,7 @@ fun HomeScreen(
     healthConnectManager: HealthConnectManager,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onMetricClick: (String) -> Unit
+    onMetricClick: (String) -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Metrics", "Workouts", "Social")
@@ -46,17 +50,19 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Official PulseFit Branding
                         Icon(
                             painter = painterResource(id = R.drawable.ic_pulsefit_logo),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
-                            tint = Color.Unspecified, // Keep original red
+                            tint = Color.Unspecified, // Uses original red from vector
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("PulseFit", fontWeight = FontWeight.Bold)
                     }
                 },
                 actions = {
+                    // Personalized greeting and navigation icons
                     Text(
                         text = "Hi, $username",
                         style = MaterialTheme.typography.bodyMedium,
@@ -72,6 +78,7 @@ fun HomeScreen(
             )
         },
         bottomBar = {
+            // Main Bottom Navigation
             Column {
                 HorizontalDivider()
                 TabRow(selectedTabIndex = selectedTab) {
@@ -94,6 +101,7 @@ fun HomeScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Switch content based on the selected tab
             when (selectedTab) {
                 0 -> HealthMetricsContent(workoutViewModel, healthConnectManager, onMetricClick)
                 1 -> WorkoutsContent(workoutViewModel)
@@ -103,6 +111,9 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Tab Content: Displays health data (Heart Rate, HRV) fetched from Health Connect.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HealthMetricsContent(
@@ -117,7 +128,7 @@ fun HealthMetricsContent(
     var hrv by remember { mutableStateOf("--") }
     var lastUpdated by remember { mutableStateOf("") }
 
-    // Re-fetch data whenever the screen is visible
+    // Background loop to re-fetch data every 15 seconds while the tab is visible
     LaunchedEffect(Unit) {
         val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
         while(true) {
@@ -127,7 +138,7 @@ fun HealthMetricsContent(
                 hrv = healthConnectManager.readHRV()?.let { "%.1f".format(it) } ?: "--"
                 lastUpdated = java.time.LocalTime.now().format(formatter)
             }
-            kotlinx.coroutines.delay(15000) // Refresh every 15 seconds
+            kotlinx.coroutines.delay(15000) 
         }
     }
 
@@ -137,6 +148,7 @@ fun HealthMetricsContent(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Workout consistency indicator
         WeeklyWorkoutTracker(workoutViewModel)
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -150,6 +162,7 @@ fun HealthMetricsContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Interactive metric cards - tapping opens detailed history graphs
         MetricCard(
             title = "Current Heart Rate",
             value = currentHeartRate,
@@ -179,11 +192,13 @@ fun HealthMetricsContent(
             onClick = { onMetricClick("HRV") }
         )
         
-        // Add more spacers at the bottom for better scroll feel
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
+/**
+ * Simple reusable card component for displaying a health metric.
+ */
 @Composable
 fun MetricCard(
     title: String,
@@ -226,6 +241,7 @@ fun MetricCard(
                 )
             }
 
+            // Optional message (e.g., "Connect health app to see data")
             statusMessage?.let {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -238,6 +254,9 @@ fun MetricCard(
     }
 }
 
+/**
+ * Visual row of colored dots showing workout consistency for the current week.
+ */
 @Composable
 fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
     val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -277,17 +296,19 @@ fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         
+                        // Circle color logic: Green=Success/Rest, Red=Missed, Gray=Upcoming
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(androidx.compose.foundation.shape.CircleShape)
                                 .background(
                                     when {
-                                        isCompleted -> Color(0xFF4CAF50) // Green (Completed/Rest)
-                                        isPast && !isRestDay -> Color(0xFFF44336) // Red (Missed Workout)
-                                        else -> MaterialTheme.colorScheme.surfaceVariant // Gray (Future/Pending Today)
+                                        isCompleted -> Color(0xFF4CAF50) 
+                                        isPast && !isRestDay -> Color(0xFFF44336) 
+                                        else -> MaterialTheme.colorScheme.surfaceVariant 
                                     }
-                                ),
+                                )
+                                .clickable { viewModel.toggleCompletion(day, !isCompleted) },
                             contentAlignment = Alignment.Center
                         ) {
                             if (isCompleted) {
@@ -306,6 +327,9 @@ fun WeeklyWorkoutTracker(viewModel: WorkoutViewModel) {
     }
 }
 
+/**
+ * Tab Content: Allows user to manage their weekly workout focus.
+ */
 @Composable
 fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
     val scrollState = rememberScrollState()
@@ -328,6 +352,7 @@ fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Large CTA to mark today's workout as finished
         Button(
             onClick = { workoutViewModel.startTodayWorkout() },
             modifier = Modifier.fillMaxWidth(),
@@ -353,7 +378,7 @@ fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
             title = "Prebuilt Workout",
             description = "Choose from our professionally designed routines",
             icon = Icons.Default.FitnessCenter,
-        ) { /* Handle Prebuilt */ }
+        ) { /* Logic for prebuilt plans */ }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -361,10 +386,13 @@ fun WorkoutsContent(workoutViewModel: WorkoutViewModel) {
             title = "Create Your Own",
             description = "Build a custom routine that fits your needs",
             icon = Icons.Default.Add,
-        ) { /* Handle Create Custom */ }
+        ) { /* Logic for custom builder */ }
     }
 }
 
+/**
+ * List of editable cards for each day of the week.
+ */
 @Composable
 fun WeeklyScheduler(viewModel: WorkoutViewModel) {
     val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -431,11 +459,15 @@ fun WeeklyScheduler(viewModel: WorkoutViewModel) {
     }
 }
 
+/**
+ * Tab Content: Community features like user search and global leaderboard.
+ */
 @Composable
 fun SocialContent(socialViewModel: SocialViewModel) {
     var searchQuery by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
+    // Refresh leaderboard whenever the tab is opened
     LaunchedEffect(Unit) {
         socialViewModel.loadLeaderboard()
     }
@@ -453,6 +485,7 @@ fun SocialContent(socialViewModel: SocialViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        // Real-time user search bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { 
@@ -470,6 +503,7 @@ fun SocialContent(socialViewModel: SocialViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display search results OR friends list
         if (searchQuery.isNotEmpty()) {
             Text("Search Results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
             
@@ -485,7 +519,6 @@ fun SocialContent(socialViewModel: SocialViewModel) {
                 }
             }
         } else {
-            // Show Friends List when not searching
             if (socialViewModel.friendsList.isNotEmpty()) {
                 Text("Friends", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
                 socialViewModel.friendsList.forEach { friend ->
@@ -498,6 +531,7 @@ fun SocialContent(socialViewModel: SocialViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
         
+        // Global ranking based on workout consistency
         Text("Leaderboard", style = MaterialTheme.typography.titleMedium, modifier = Modifier.align(Alignment.Start))
         Column(modifier = Modifier.verticalScroll(scrollState)) {
             socialViewModel.leaderboard.forEachIndexed { index, user ->
@@ -506,7 +540,7 @@ fun SocialContent(socialViewModel: SocialViewModel) {
         }
     }
 
-    // Friend Schedule Dialog
+    // Modal to view a friend's weekly plan
     if (socialViewModel.selectedFriendName != null) {
         AlertDialog(
             onDismissRequest = { socialViewModel.selectedFriendName = null },
@@ -531,6 +565,9 @@ fun SocialContent(socialViewModel: SocialViewModel) {
     }
 }
 
+/**
+ * Reusable card for users in search results or friends list.
+ */
 @Composable
 fun UserResultCard(user: UserProfile, isFriend: Boolean = false, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -553,6 +590,9 @@ fun UserResultCard(user: UserProfile, isFriend: Boolean = false, onClick: () -> 
     }
 }
 
+/**
+ * Displays a user's rank and streak in the global leaderboard.
+ */
 @Composable
 fun LeaderboardCard(rank: Int, user: UserProfile) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -571,6 +611,9 @@ fun LeaderboardCard(rank: Int, user: UserProfile) {
     }
 }
 
+/**
+ * Clickable card for main workout category selection.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutOptionCard(

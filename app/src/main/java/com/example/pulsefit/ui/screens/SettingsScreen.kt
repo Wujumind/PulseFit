@@ -23,6 +23,10 @@ import androidx.compose.ui.unit.dp
 
 import com.example.pulsefit.HealthConnectManager
 
+/**
+ * Screen for managing application-wide preferences.
+ * Includes Theme, Measurement Units, Health Connect integrations, and OTA Update settings.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -36,14 +40,17 @@ fun SettingsScreen(
     onCheckForUpdatesClick: () -> Unit,
     healthConnectManager: HealthConnectManager,
 ) {
+    // --- UI State ---
     var isHealthExpanded by remember { mutableStateOf(value = false) }
     var isConnected by remember { mutableStateOf(value = false) }
     var showInstructionsFor by remember { mutableStateOf<String?>(null) }
 
+    // Check actual Health Connect permission status on load
     LaunchedEffect(Unit) {
         isConnected = healthConnectManager.hasAllPermissions()
     }
     
+    // Instruction modal for specific 3rd party apps
     if (showInstructionsFor != null) {
         AlertDialog(
             onDismissRequest = { 
@@ -109,6 +116,7 @@ fun SettingsScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // Measurement Units (Metric vs Imperial)
             ListItem(
                 headlineContent = { Text("Units of Measurement") },
                 supportingContent = { Text(if (isMetric) "Metric (cm, kg)" else "Imperial (in, lb)") },
@@ -121,6 +129,7 @@ fun SettingsScreen(
                 }
             )
 
+            // Theme Management
             ListItem(
                 headlineContent = { Text("Dark Mode") },
                 supportingContent = { Text(if (isDarkMode) "Enabled" else "Disabled") },
@@ -142,6 +151,7 @@ fun SettingsScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
+            // Health Connect Integration Hub
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -199,9 +209,9 @@ fun SettingsScreen(
                                 trailingContent = {
                                     TextButton(onClick = {
                                         if (!isConnected) {
-                                            onIntegrateHealthClick()
+                                            onIntegrateHealthClick() // Start permission flow
                                         } else {
-                                            showInstructionsFor = name
+                                            showInstructionsFor = name // Show instructions
                                         }
                                     }) {
                                         Text(if (isConnected) "Settings" else "Connect")
@@ -227,6 +237,7 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
+            // App Meta Information and Updates
             Text(
                 text = "App Info",
                 style = MaterialTheme.typography.titleMedium,
@@ -236,18 +247,19 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text("Version") },
-                supportingContent = { Text("1.12 (Build 22)") },
+                supportingContent = { Text("1.14 (Build 31)") },
                 leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
             )
 
             ListItem(
                 headlineContent = { Text("Check for Updates") },
                 supportingContent = { Text("Get the latest features and fixes") },
-                leadingContent = { Icon(Icons.Default.HealthAndSafety, contentDescription = null) }, // Reusing an icon for update
+                leadingContent = { Icon(Icons.Default.HealthAndSafety, contentDescription = null) }, 
                 modifier = Modifier.clickable { onCheckForUpdatesClick() },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent)
             )
 
+            // Logout Action
             ListItem(
                 headlineContent = { Text("Logout", color = MaterialTheme.colorScheme.error) },
                 leadingContent = { 
@@ -263,7 +275,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "Version 1.12 (Build 22)",
+                text = "Version 1.14 (Build 31)",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier

@@ -15,6 +15,10 @@ import com.example.pulsefit.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+/**
+ * Handles new user registration via Email and Password.
+ * Ensures usernames are unique before allowing account creation.
+ */
 @Composable
 fun SignUpScreen(
     onSignUpSuccess: () -> Unit,
@@ -36,6 +40,7 @@ fun SignUpScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Official PulseFit Logo
         Image(
             painter = painterResource(id = R.drawable.ic_pulsefit_logo),
             contentDescription = "PulseFit Logo",
@@ -56,11 +61,13 @@ fun SignUpScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
+        // Feedback for registration errors
         if (error != null) {
             Text(error!!, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Username Input - Used for social features and must be unique
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -68,6 +75,8 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        
+        // Email Input
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -75,6 +84,8 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        
+        // Password Input
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -87,20 +98,23 @@ fun SignUpScreen(
         if (isLoading) {
             CircularProgressIndicator()
         } else {
+            // Registration trigger
             Button(
                 onClick = {
                     if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty()) {
                         isLoading = true
-                        // Check if username is taken first
+                        
+                        // Step 1: Verify username availability in Firestore
                         db.collection("users")
                             .whereEqualTo("username", name)
                             .get()
                             .addOnSuccessListener { documents ->
                                 if (documents.isEmpty()) {
+                                    // Step 2: Create the auth account
                                     auth.createUserWithEmailAndPassword(email, password)
                                         .addOnCompleteListener { task ->
                                             if (task.isSuccessful) {
-                                                // Initialize user profile in Firestore
+                                                // Step 3: Initialize user profile in Firestore
                                                 val userId = auth.currentUser?.uid ?: ""
                                                 val userData = mapOf(
                                                     "username" to name,
@@ -134,6 +148,7 @@ fun SignUpScreen(
             }
         }
 
+        // Return to Login Screen
         TextButton(onClick = onLoginClick) {
             Text("Already have an account? Login")
         }

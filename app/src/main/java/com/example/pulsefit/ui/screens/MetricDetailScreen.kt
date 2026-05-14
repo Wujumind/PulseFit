@@ -18,6 +18,10 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * Detail view for a specific health metric (Heart Rate, HRV, etc.).
+ * Displays historical trends using a custom line graph and statistical summary.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MetricDetailScreen(
@@ -28,6 +32,7 @@ fun MetricDetailScreen(
     var historyData by remember { mutableStateOf<List<Pair<Instant, Double>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
+    // Load historical data based on the selected metric
     LaunchedEffect(metricName) {
         isLoading = true
         historyData = when (metricName) {
@@ -68,6 +73,7 @@ fun MetricDetailScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                // Visual trend representation
                 SimpleLineGraph(
                     data = historyData,
                     modifier = Modifier
@@ -79,7 +85,7 @@ fun MetricDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Stats Summary
+                // Stats Summary - Automatic calculations from history data
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         val avg = historyData.map { it.second }.average()
@@ -96,6 +102,9 @@ fun MetricDetailScreen(
     }
 }
 
+/**
+ * Custom line graph drawn on a Canvas for maximum performance and flexibility.
+ */
 @Composable
 fun SimpleLineGraph(
     data: List<Pair<Instant, Double>>,
@@ -115,6 +124,7 @@ fun SimpleLineGraph(
 
         val path = Path()
         data.forEachIndexed { index, pair ->
+            // Map data point to normalized canvas coordinates
             val x = index * spacing
             val y = height - ((pair.second.toFloat() - minVal) / range * height)
             if (index == 0) {

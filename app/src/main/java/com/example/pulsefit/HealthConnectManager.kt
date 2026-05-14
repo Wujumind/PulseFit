@@ -13,21 +13,33 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Instant
 import java.time.ZonedDateTime
 
+/**
+ * Manages all interactions with the Android Health Connect API.
+ * This class handles permissions, data fetching (Heart Rate, HRV), and deep-linking to 3rd-party health apps.
+ */
 class HealthConnectManager(private val context: Context) {
+    // Lazily initialize the client only if the SDK is available on the device
     private val healthConnectClient by lazy { 
         if (isHealthConnectAvailable()) HealthConnectClient.getOrCreate(context) else null 
     }
 
+    // Set of required permissions for reading health data
     val permissions = setOf(
         HealthPermission.getReadPermission(HeartRateRecord::class),
         HealthPermission.getReadPermission(RestingHeartRateRecord::class),
         HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class)
     )
 
+    /**
+     * Checks if the Health Connect SDK is supported and installed on the device.
+     */
     fun isHealthConnectAvailable(): Boolean {
         return HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
     }
 
+    /**
+     * Deep-links the user to the Health Connect app listing on the Google Play Store.
+     */
     fun openHealthConnectStore() {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse("market://details?id=com.google.android.apps.healthdata")
@@ -37,6 +49,10 @@ class HealthConnectManager(private val context: Context) {
         context.startActivity(intent)
     }
 
+    /**
+     * Opens a specific health tracking app (e.g., Samsung Health, Fitbit) by package name.
+     * Redirects to the Play Store if the app is not installed.
+     */
     fun openSpecificHealthApp(packageName: String) {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)
         if (intent != null) {
@@ -50,12 +66,18 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Checks if all required health permissions have been granted by the user.
+     */
     suspend fun hasAllPermissions(): Boolean {
         val client = healthConnectClient ?: return false
         val granted = client.permissionController.getGrantedPermissions()
         return granted.containsAll(permissions)
     }
 
+    /**
+     * Reads the most recent Resting Heart Rate record from the last 7 days.
+     */
     suspend fun readRestingHeartRate(): Long? {
         val client = healthConnectClient ?: return null
         if (!hasAllPermissions()) return null
@@ -76,6 +98,9 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Reads the most recent Heart Rate sample from the last hour.
+     */
     suspend fun readCurrentHeartRate(): Long? {
         val client = healthConnectClient ?: return null
         if (!hasAllPermissions()) return null
@@ -96,6 +121,9 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Reads the most recent HRV record from the last 7 days.
+     */
     suspend fun readHRV(): Double? {
         val client = healthConnectClient ?: return null
         if (!hasAllPermissions()) return null
@@ -116,6 +144,9 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Fetches historical Heart Rate data for the last 24 hours (used for graphs).
+     */
     suspend fun readHeartRateHistory(): List<Pair<Instant, Long>> {
         val client = healthConnectClient ?: return emptyList()
         if (!hasAllPermissions()) return emptyList()
@@ -138,6 +169,9 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Fetches historical Resting Heart Rate data for the last 30 days.
+     */
     suspend fun readRestingHeartRateHistory(): List<Pair<Instant, Long>> {
         val client = healthConnectClient ?: return emptyList()
         if (!hasAllPermissions()) return emptyList()
@@ -158,6 +192,9 @@ class HealthConnectManager(private val context: Context) {
         }
     }
 
+    /**
+     * Fetches historical HRV data for the last 30 days.
+     */
     suspend fun readHRVHistory(): List<Pair<Instant, Double>> {
         val client = healthConnectClient ?: return emptyList()
         if (!hasAllPermissions()) return emptyList()

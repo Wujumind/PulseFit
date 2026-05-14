@@ -27,24 +27,34 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
+/**
+ * The main entry point of the application.
+ * This activity manages the root UI, authentication logic, and high-level state (Theme, Updates).
+ */
 class MainActivity : ComponentActivity() {
     private lateinit var healthConnectManager: HealthConnectManager
     private val auth = FirebaseAuth.getInstance()
     
+    // Launcher for Health Connect permission requests
     private val requestPermissions = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract(),
     ) { _ ->
-        // Permissions granted
+        // Permissions granted - data will auto-refresh on the next UI update cycle
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize health manager for data tracking
         healthConnectManager = HealthConnectManager(this)
         enableEdgeToEdge()
+        
         setContent {
+            // ViewModels for managing application state across different features
             val userViewModel: UserViewModel = viewModel()
             val workoutViewModel: WorkoutViewModel = viewModel()
             val socialViewModel: SocialViewModel = viewModel()
+            
             val systemDarkMode = isSystemInDarkTheme()
             val context = LocalContext.current
             
@@ -53,12 +63,12 @@ class MainActivity : ComponentActivity() {
             var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
             val scope = rememberCoroutineScope()
             
-            // Keep track if user has manually toggled dark mode
+            // Theme Management
             var hasUserToggledDarkMode by remember { mutableStateOf(value = false) }
             var isDarkMode by remember { mutableStateOf(systemDarkMode) }
             var isMetric by remember { mutableStateOf(value = true) }
             
-            // Sync with system dark mode if user hasn't overridden it
+            // Sync with system dark mode automatically unless the user manually toggles it
             LaunchedEffect(systemDarkMode) {
                 if (!hasUserToggledDarkMode) {
                     isDarkMode = systemDarkMode
@@ -70,6 +80,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // Global Update Checker component (shows popup if version mismatch)
                     UpdateChecker(
                         context = context,
                         updateInfo = updateInfo,
@@ -77,6 +88,8 @@ class MainActivity : ComponentActivity() {
                     ) {
                         updateInfo = updateManager.checkForUpdate()
                     }
+                    
+                    // Main App Navigation and UI
                     PulseFitApp(
                         isDarkMode = isDarkMode,
                         onDarkModeChange = { 
@@ -107,10 +120,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Handles the Google Sign-In flow using the modern Credential Manager API.
+     */
     private fun signInWithGoogle(userViewModel: UserViewModel) {
         val credentialManager = CredentialManager.create(this)
         
-        // Use the Client ID from your Firebase Console
+        // Google Web Client ID from Firebase Console (required for backend auth)
         val serverClientId = "904782209269-n115kq86uceqcfav4ukassnpil9tegaf.apps.googleusercontent.com"
         
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -129,10 +145,12 @@ class MainActivity : ComponentActivity() {
                 val result = credentialManager.getCredential(this@MainActivity, request)
                 val credential = result.credential
                 
+                // If successful, exchange the Google ID token for a Firebase credential
                 if (credential is GoogleIdTokenCredential) {
                     val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
                     auth.signInWithCredential(firebaseCredential).addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            // Update local and cloud profile with Google info
                             userViewModel.updateUserInfo(
                                 name = credential.displayName ?: "Google User",
                                 photoUrl = credential.profilePictureUri?.toString(),
@@ -157,6 +175,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Root Composable for application navigation.
+ * Uses Jetpack Compose Navigation to manage all screens.
+ */
 @Composable
 fun PulseFitApp(
     isDarkMode: Boolean,
@@ -174,6 +196,7 @@ fun PulseFitApp(
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
+        // --- Authentication Screens ---
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { navController.navigate("home") },
@@ -186,6 +209,8 @@ fun PulseFitApp(
                 onSignUpSuccess = { navController.navigate("home") },
             ) { navController.popBackStack() }
         }
+
+        // --- Main Application Screens ---
         composable("home") {
             HomeScreen(
                 username = userViewModel.username,
@@ -222,6 +247,8 @@ fun PulseFitApp(
                 isMetric = isMetric
             ) { navController.popBackStack() }
         }
+
+        // --- Detail Screens ---
         composable("metric_detail/{metricName}") { backStackEntry ->
             val metricName = backStackEntry.arguments?.getString("metricName") ?: ""
             MetricDetailScreen(

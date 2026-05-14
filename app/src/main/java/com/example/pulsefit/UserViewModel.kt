@@ -5,10 +5,15 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+/**
+ * ViewModel responsible for managing user-specific data, including profile details and authentication state.
+ * Data is synchronized with Firebase Firestore for persistence across devices.
+ */
 class UserViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
+    // --- Observable User State ---
     var username by mutableStateOf("User123")
     var profilePictureUrl by mutableStateOf<String?>(null)
     var email by mutableStateOf("")
@@ -17,6 +22,9 @@ class UserViewModel : ViewModel() {
     var streak by mutableIntStateOf(0)
     var totalWorkouts by mutableIntStateOf(0)
 
+    /**
+     * Checks if a specific username is already taken by another user in the database.
+     */
     fun checkUsernameExists(username: String, onResult: (Boolean) -> Unit) {
         db.collection("users")
             .whereEqualTo("username", username)
@@ -27,18 +35,21 @@ class UserViewModel : ViewModel() {
     }
 
     init {
+        // Listen for changes in the Firebase authentication state
         auth.addAuthStateListener { firebaseAuth ->
             val currentUser = firebaseAuth.currentUser
             if (currentUser != null) {
                 email = currentUser.email ?: ""
-                loadUserData(currentUser.uid)
+                loadUserData(currentUser.uid) // Load profile from Firestore on login
             } else {
-                // Reset state on sign out
-                resetState()
+                resetState() // Wipe local state on logout
             }
         }
     }
 
+    /**
+     * Resets the local user state to default values.
+     */
     private fun resetState() {
         username = "User123"
         profilePictureUrl = null
@@ -49,6 +60,9 @@ class UserViewModel : ViewModel() {
         totalWorkouts = 0
     }
 
+    /**
+     * Updates the local user information and triggers a cloud sync.
+     */
     fun updateUserInfo(name: String, photoUrl: String?, userEmail: String) {
         username = name
         profilePictureUrl = photoUrl
@@ -56,6 +70,9 @@ class UserViewModel : ViewModel() {
         saveUserData()
     }
 
+    /**
+     * Saves the current user profile data to the Firestore 'users' collection.
+     */
     fun saveUserData() {
         val userId = auth.currentUser?.uid ?: return
         val userData = mapOf(
@@ -70,6 +87,9 @@ class UserViewModel : ViewModel() {
         db.collection("users").document(userId).set(userData)
     }
 
+    /**
+     * Fetches user profile data from Firestore for the given userId.
+     */
     private fun loadUserData(userId: String) {
         db.collection("users").document(userId).get().addOnSuccessListener { document ->
             if (document != null && document.exists()) {
@@ -83,12 +103,11 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Signs the user out of Firebase and clears the local session.
+     */
     fun signOut() {
         auth.signOut()
-        username = "User123"
-        profilePictureUrl = null
-        email = ""
-        height = "175"
-        weight = "70"
+        resetState()
     }
 }

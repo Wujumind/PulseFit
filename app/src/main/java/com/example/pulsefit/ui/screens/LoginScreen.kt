@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.sp
 import com.example.pulsefit.R
 import com.google.firebase.auth.FirebaseAuth
 
+/**
+ * The initial landing screen for the application.
+ * Handles user authentication via Email/Password or Google Sign-In.
+ */
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -38,6 +42,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // Official PulseFit Branding
         Image(
             painter = painterResource(id = R.drawable.ic_pulsefit_logo),
             contentDescription = "PulseFit Logo",
@@ -61,11 +66,13 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
+        // Error Feedback
         if (error != null) {
             Text(error!!, color = MaterialTheme.colorScheme.error)
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        // Email Input
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -73,6 +80,8 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        
+        // Password Input
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -82,6 +91,7 @@ fun LoginScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
         
+        // Primary Action
         if (isLoading) {
             CircularProgressIndicator()
         } else {
@@ -108,10 +118,12 @@ fun LoginScreen(
             }
         }
         
+        // Developer shortcut to bypass login during testing
         TextButton(onClick = onLoginSuccess) {
             Text("Bypass Login (Debug Mode)", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
         }
 
+        // Navigation to registration
         TextButton(onClick = onSignUpClick) {
             Text("Don't have an account? Sign Up")
         }
@@ -120,6 +132,7 @@ fun LoginScreen(
         Text(text = "Or sign in with")
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Google Authentication Entry Point
         Button(
             onClick = onGoogleSignInClick,
             modifier = Modifier.fillMaxWidth()

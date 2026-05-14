@@ -1,6 +1,6 @@
 {
-  "versionCode": 30,
-  "versionName": "1.13",
+  "versionCode": 31,
+  "versionName": "1.14",
   "downloadUrl": "https://github.com/Wujumind/PulseFit/releases/latest/download/PulseFit.apk",
-  "releaseNotes": "Live Tracking & History! Added detailed metric views with historical graphs. Metrics now update live with a timestamp."
+  "releaseNotes": "Fixed Weekly Progress: Wednesday and Sunday no longer auto-complete. You can now tap on the progress dots to manually toggle completion status!"
 }

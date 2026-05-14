@@ -15,6 +15,9 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
+/**
+ * Data model for update information fetched from the remote server.
+ */
 @Serializable
 data class UpdateInfo(
     val versionCode: Int,
@@ -23,21 +26,34 @@ data class UpdateInfo(
     val releaseNotes: String,
 )
 
+/**
+ * Manages the logic for checking and fetching application updates from a remote source (GitHub).
+ */
 class UpdateManager(private val context: Context) {
     private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
+    
+    // Remote URL pointing to the latest version metadata on GitHub
     private val updateUrl = "https://raw.githubusercontent.com/Wujumind/PulseFit/main/docs/version.json"
 
+    /**
+     * Pings the remote server to check if a new version is available.
+     * Compares the remote versionCode with the locally installed versionCode.
+     */
     suspend fun checkForUpdate(): UpdateInfo? {
         return withContext(Dispatchers.IO) {
             try {
+                // Add a timestamp to bypass any potential caching
                 val urlWithCacheBuster = "$updateUrl?t=${System.currentTimeMillis()}"
                 val request = Request.Builder().url(urlWithCacheBuster).build()
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@withContext null
                     val body = response.body?.string() ?: return@withContext null
+                    
+                    // Parse the JSON update info
                     val info = json.decodeFromString<UpdateInfo>(body)
                     
+                    // Get the locally installed version info
                     val packageInfo = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                         context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
                     } else {
@@ -51,6 +67,7 @@ class UpdateManager(private val context: Context) {
                         packageInfo.versionCode
                     }
                     
+                    // If cloud version is higher than local version, return the update info
                     if (info.versionCode > currentVersion) info else null
                 }
             } catch (e: Exception) {
@@ -61,6 +78,9 @@ class UpdateManager(private val context: Context) {
     }
 }
 
+/**
+ * UI Component that displays an update dialog if a new version is detected.
+ */
 @Composable
 fun UpdateChecker(
     context: Context,
@@ -68,10 +88,12 @@ fun UpdateChecker(
     onUpdateDismiss: () -> Unit,
     onCheckForUpdate: suspend () -> Unit,
 ) {
+    // Automatically trigger an update check when this component enters the composition
     LaunchedEffect(Unit) {
         onCheckForUpdate()
     }
 
+    // Show dialog if update info is present
     updateInfo?.let { info ->
         AlertDialog(
             onDismissRequest = onUpdateDismiss,
@@ -80,6 +102,7 @@ fun UpdateChecker(
             confirmButton = {
                 Button(
                     onClick = {
+                        // Open the download URL in the device's browser
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.downloadUrl))
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         context.startActivity(intent)
